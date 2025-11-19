@@ -1,0 +1,47 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
+*.xcuserdatad
+DerivedData/
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods
+Pods/
+*.podspec
+
+# XcodeGen
+# (project.yml is tracked, generated .xcodeproj is ignored)
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Build artifacts
+build/
+*.ipa
+*.app
+*.dSYM.zip
+*.dSYM
+
+# Swift
+*.swp
+*~.nib
+*.moved-aside
+*.swiftmodule
+*.swiftsourceinfo
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE
+.idea/
+.vscode/
