@@ -132,7 +132,7 @@ struct GridView: View {
 // MARK: - Hoop View
 
 struct HoopView: View {
-    let hoopSize: Canvas.HoopSize
+    let hoopSize: EmbroideryCanvas.HoopSize
     let zoomLevel: Double
 
     var body: some View {
@@ -193,7 +193,7 @@ struct LayerView: View {
 // MARK: - Tool Overlay
 
 struct ToolOverlay: View {
-    let tool: Tool?
+    let tool: (any Tool)?
 
     var body: some View {
         // Placeholder for tool-specific overlays

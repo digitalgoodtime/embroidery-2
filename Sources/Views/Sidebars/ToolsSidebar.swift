@@ -84,7 +84,7 @@ struct ToolsPanelView: View {
 }
 
 struct ToolButton: View {
-    let tool: Tool
+    let tool: any Tool
     let isSelected: Bool
     let action: () -> Void
 

@@ -49,3 +49,4 @@ targets:
       - script: |
           echo "Building EmbroideryStudio v${MARKETING_VERSION}"
         name: "Build Info"
+        basedOnDependencyAnalysis: false

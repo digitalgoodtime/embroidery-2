@@ -16,10 +16,10 @@ extension UTType {
 
 // MARK: - Embroidery Document
 
-struct EmbroideryDocument: FileDocument {
+struct EmbroideryDocument: FileDocument, Equatable {
     // MARK: - Properties
 
-    var canvas: Canvas
+    var canvas: EmbroideryCanvas
     var layers: [EmbroideryLayer]
     var metadata: DocumentMetadata
 
@@ -28,7 +28,7 @@ struct EmbroideryDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.embroideryDesign] }
 
     init() {
-        self.canvas = Canvas()
+        self.canvas = EmbroideryCanvas()
         self.layers = []
         self.metadata = DocumentMetadata()
     }
@@ -64,14 +64,14 @@ struct EmbroideryDocument: FileDocument {
 // MARK: - Document Data
 
 struct EmbroideryDocumentData: Codable {
-    var canvas: Canvas
+    var canvas: EmbroideryCanvas
     var layers: [EmbroideryLayer]
     var metadata: DocumentMetadata
 }
 
-// MARK: - Canvas
+// MARK: - Embroidery Canvas
 
-struct Canvas: Codable {
+struct EmbroideryCanvas: Codable, Equatable {
     var width: Double = 800.0
     var height: Double = 600.0
     var backgroundColor: CodableColor = CodableColor(.white)
@@ -98,7 +98,7 @@ struct Canvas: Codable {
 
 // MARK: - Embroidery Layer
 
-struct EmbroideryLayer: Identifiable, Codable {
+struct EmbroideryLayer: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var name: String
     var isVisible: Bool = true
@@ -109,7 +109,7 @@ struct EmbroideryLayer: Identifiable, Codable {
 
 // MARK: - Stitch Group
 
-struct StitchGroup: Identifiable, Codable {
+struct StitchGroup: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var type: StitchType
     var points: [StitchPoint] = []
@@ -124,14 +124,14 @@ enum StitchType: String, Codable {
     case applique
 }
 
-struct StitchPoint: Codable {
+struct StitchPoint: Codable, Equatable {
     var x: Double
     var y: Double
 }
 
 // MARK: - Document Metadata
 
-struct DocumentMetadata: Codable {
+struct DocumentMetadata: Codable, Equatable {
     var createdDate: Date = Date()
     var modifiedDate: Date = Date()
     var author: String = ""
@@ -142,7 +142,7 @@ struct DocumentMetadata: Codable {
 
 // MARK: - Codable Color
 
-struct CodableColor: Codable {
+struct CodableColor: Codable, Equatable {
     var red: Double
     var green: Double
     var blue: Double

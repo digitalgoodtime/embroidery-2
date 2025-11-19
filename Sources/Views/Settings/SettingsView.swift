@@ -91,8 +91,8 @@ struct GeneralSettingsView: View {
 struct CanvasSettingsView: View {
     var body: some View {
         Section("Default Canvas") {
-            Picker("Hoop size:", selection: .constant(Canvas.HoopSize.standard4x4)) {
-                ForEach(Canvas.HoopSize.allCases, id: \.self) { size in
+            Picker("Hoop size:", selection: .constant(EmbroideryCanvas.HoopSize.standard4x4)) {
+                ForEach(EmbroideryCanvas.HoopSize.allCases, id: \.self) { size in
                     Text(size.rawValue).tag(size)
                 }
             }

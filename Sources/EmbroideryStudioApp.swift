@@ -12,7 +12,7 @@ struct EmbroideryStudioApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        DocumentGroup(newDocument: { EmbroideryDocument() }) { file in
+        DocumentGroup(newDocument: EmbroideryDocument()) { file in
             DocumentView(document: file.$document)
         }
         .commands {
