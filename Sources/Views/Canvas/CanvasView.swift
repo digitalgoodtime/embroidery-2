@@ -2,7 +2,7 @@
 //  CanvasView.swift
 //  EmbroideryStudio
 //
-//  Main canvas view for displaying and editing embroidery designs
+//  Main canvas view for displaying and editing embroidery designs with liquid glass polish
 //
 
 import SwiftUI
@@ -18,7 +18,7 @@ struct CanvasView: View {
         GeometryReader { geometry in
             ZStack {
                 // Background
-                Color(nsColor: .controlBackgroundColor)
+                Color.surfaceCanvas
 
                 // Grid (if enabled)
                 if documentState.showGrid {
@@ -77,6 +77,9 @@ struct CanvasView: View {
                 handleCanvasTap(at: location, in: geometry)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Embroidery canvas")
+        .accessibilityHint("Drag to pan, pinch to zoom, tap to use current tool")
     }
 
     private func handleCanvasTap(at location: CGPoint, in geometry: GeometryProxy) {
@@ -121,8 +124,8 @@ struct GridView: View {
                         path.addLine(to: CGPoint(x: size.width, y: y))
                     }
                 },
-                with: .color(.primary.opacity(0.08)),
-                lineWidth: 0.5
+                with: .color(.textPrimary.opacity(.opacitySubtle)),
+                lineWidth: .lineHairline
             )
 
             // Major grid lines (every 10 units)
@@ -141,8 +144,8 @@ struct GridView: View {
                             path.addLine(to: CGPoint(x: size.width, y: y))
                         }
                     },
-                    with: .color(.primary.opacity(0.15)),
-                    lineWidth: 0.75
+                    with: .color(.textPrimary.opacity(.opacityMediumLight)),
+                    lineWidth: .lineStandard - 0.25
                 )
             }
         }
@@ -162,45 +165,46 @@ struct HoopView: View {
 
         ZStack {
             // Subtle outer glow
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.accentColor.opacity(0.12), lineWidth: 3)
-                .frame(width: width + 6, height: height + 6)
-                .blur(radius: 3)
+            RoundedRectangle(cornerRadius: .radiusMedium)
+                .stroke(Color.accentLightMedium, lineWidth: .lineVeryStrong)
+                .frame(width: width + .spacing1_5, height: height + .spacing1_5)
+                .blur(radius: .spacing0_5 + 1)
 
             // Main hoop outline
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: .radiusSmall)
                 .stroke(
                     LinearGradient(
                         colors: [
-                            Color.accentColor.opacity(0.8),
-                            Color.accentColor.opacity(0.6)
+                            Color.accentHigh,
+                            Color.accentMuted
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    style: StrokeStyle(lineWidth: 1.5, dash: [10, 5])
+                    style: StrokeStyle(lineWidth: .lineEmphasis, dash: [10, 5])
                 )
                 .frame(width: width, height: height)
 
             // Hoop size label
             VStack {
                 Spacer()
-                HStack(spacing: 4) {
+                HStack(spacing: .spacing1) {
                     Image(systemName: "circle.dashed")
-                        .font(.system(size: 9))
-                        .foregroundColor(.accentColor.opacity(0.7))
+                        .font(.system(size: .iconSmall - 1))
+                        .foregroundColor(.accentHigh)
                     Text(hoopSize.rawValue)
-                        .font(.system(.caption2, design: .monospaced, weight: .medium))
-                        .foregroundColor(.primary.opacity(0.7))
+                        .font(.captionSmallMedium)
+                        .foregroundColor(.textPrimary.opacity(.opacitySecondary))
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, .spacing2)
+                .padding(.vertical, .spacing1)
                 .background(.ultraThinMaterial)
-                .cornerRadius(4)
-                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
-                .offset(y: height / 2 + 20)
+                .cornerRadius(.radiusXSmall)
+                .shadowSubtle()
+                .offset(y: height / 2 + .spacing5)
             }
         }
+        .accessibilityHidden(true)
     }
 }
 
@@ -243,7 +247,7 @@ struct LayerView: View {
         context.stroke(
             path,
             with: .color(Color(group.color.nsColor)),
-            lineWidth: 1.0
+            lineWidth: .lineStandard
         )
     }
 }

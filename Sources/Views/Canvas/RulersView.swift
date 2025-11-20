@@ -2,7 +2,7 @@
 //  RulersView.swift
 //  EmbroideryStudio
 //
-//  Canvas rulers for precise measurement
+//  Canvas rulers for precise measurement with liquid glass polish
 //
 
 import SwiftUI
@@ -27,7 +27,7 @@ struct RulersView: View {
                 // Background
                 context.fill(
                     Path(CGRect(origin: .zero, size: size)),
-                    with: .color(Color(nsColor: .controlBackgroundColor).opacity(0.95))
+                    with: .color(Color.surfaceSecondary.opacity(.opacityNearFull))
                 )
 
                 // Draw tick marks
@@ -43,14 +43,14 @@ struct RulersView: View {
                         let isMajor = Int(value) % 50 == 0
                         let isMinor = Int(value) % 10 == 0
 
-                        var tickHeight: CGFloat = 4
-                        var tickWidth: CGFloat = 0.5
+                        var tickHeight: CGFloat = .spacing1
+                        var tickWidth: CGFloat = .lineHairline
 
                         if isMajor {
-                            tickHeight = 12
-                            tickWidth = 1
+                            tickHeight = .spacing3
+                            tickWidth = .lineStandard
                         } else if isMinor {
-                            tickHeight = 8
+                            tickHeight = .spacing2
                         }
 
                         let tickPath: Path
@@ -68,20 +68,20 @@ struct RulersView: View {
 
                         context.stroke(
                             tickPath,
-                            with: .color(.secondary),
+                            with: .color(.textSecondary),
                             lineWidth: tickWidth
                         )
 
                         // Draw labels for major ticks
                         if isMajor && scaledUnit > 20 {
                             let label = Text("\(Int(value))")
-                                .font(.system(size: 9))
-                                .foregroundColor(.secondary)
+                                .font(.system(size: .iconSmall - 1))
+                                .foregroundColor(.textSecondary)
 
                             if orientation == .horizontal {
-                                context.draw(label, at: CGPoint(x: position + 2, y: size.height - 16))
+                                context.draw(label, at: CGPoint(x: position + .spacing0_5, y: size.height - .spacing4))
                             } else {
-                                context.draw(label, at: CGPoint(x: size.width - 18, y: position + 2))
+                                context.draw(label, at: CGPoint(x: size.width - .spacing4 - .spacing0_5, y: position + .spacing0_5))
                             }
                         }
                     }
@@ -103,11 +103,12 @@ struct RulersView: View {
 
                 context.stroke(
                     borderPath,
-                    with: .color(Color(nsColor: .separatorColor)),
-                    lineWidth: 1
+                    with: .color(Color.borderDefault),
+                    lineWidth: .lineStandard
                 )
             }
         }
+        .accessibilityHidden(true)
     }
 }
 
@@ -116,12 +117,13 @@ struct RulersView: View {
 struct RulerCorner: View {
     var body: some View {
         Rectangle()
-            .fill(Color(nsColor: .controlBackgroundColor).opacity(0.95))
+            .fill(Color.surfaceSecondary.opacity(.opacityNearFull))
             .overlay {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: .iconTiny))
+                    .foregroundColor(.textSecondary)
             }
-            .border(Color(nsColor: .separatorColor), width: 1)
+            .border(Color.borderDefault, width: .lineStandard)
+            .accessibilityHidden(true)
     }
 }

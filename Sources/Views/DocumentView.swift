@@ -2,7 +2,7 @@
 //  DocumentView.swift
 //  EmbroideryStudio
 //
-//  Main document view with Photoshop-inspired layout
+//  Main document view with Photoshop-inspired layout and Liquid Glass design
 //
 
 import SwiftUI
@@ -15,8 +15,8 @@ struct DocumentView: View {
     // Sidebar state
     @State private var showLayersSidebar = true
     @State private var showPropertiesSidebar = true
-    @State private var layersSidebarWidth: CGFloat = 250
-    @State private var propertiesSidebarWidth: CGFloat = 280
+    @State private var layersSidebarWidth: CGFloat = .sidebarDefaultWidth
+    @State private var propertiesSidebarWidth: CGFloat = .propertiesSidebarDefaultWidth
 
     init(document: Binding<EmbroideryDocument>) {
         self._document = document
@@ -37,7 +37,7 @@ struct DocumentView: View {
 
                     ResizableDivider { delta in
                         let newWidth = layersSidebarWidth + delta
-                        layersSidebarWidth = max(200, min(400, newWidth))
+                        layersSidebarWidth = max(.sidebarMinWidth, min(.sidebarMaxWidth, newWidth))
                     }
                 }
 
@@ -45,22 +45,22 @@ struct DocumentView: View {
                 VStack(spacing: 0) {
                     // Top Toolbar
                     TopToolbar(documentState: documentState)
-                        .frame(height: 44)
+                        .frame(height: .toolbarHeight)
 
                     // Canvas
                     CanvasView(documentState: documentState)
-                        .background(Color(nsColor: .windowBackgroundColor))
+                        .background(Color.surfaceCanvas)
 
                     // Bottom Status Bar
                     StatusBar(documentState: documentState)
-                        .frame(height: 28)
+                        .frame(height: .statusBarHeight)
                 }
 
                 // Properties Sidebar
                 if showPropertiesSidebar {
                     ResizableDivider { delta in
                         let newWidth = propertiesSidebarWidth - delta
-                        propertiesSidebarWidth = max(200, min(400, newWidth))
+                        propertiesSidebarWidth = max(.sidebarMinWidth, min(.sidebarMaxWidth, newWidth))
                     }
 
                     PropertiesSidebar(documentState: documentState)
@@ -72,24 +72,26 @@ struct DocumentView: View {
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.uiSlow) {
                         showLayersSidebar.toggle()
                     }
                 }) {
                     Image(systemName: "sidebar.left")
                 }
                 .help("Toggle Layers Panel (⌘⌥1)")
+                .accessibilityLabel(showLayersSidebar ? "Hide layers panel" : "Show layers panel")
             }
 
             ToolbarItem(placement: .automatic) {
                 Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.uiSlow) {
                         showPropertiesSidebar.toggle()
                     }
                 }) {
                     Image(systemName: "sidebar.right")
                 }
                 .help("Toggle Properties Panel (⌘⌥2)")
+                .accessibilityLabel(showPropertiesSidebar ? "Hide properties panel" : "Show properties panel")
             }
         }
         .onChange(of: documentState.document) { newValue in

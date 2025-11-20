@@ -2,7 +2,7 @@
 //  TopToolbar.swift
 //  EmbroideryStudio
 //
-//  Top toolbar with quick actions (Photoshop/Pixelmator Pro style)
+//  Top toolbar with quick actions (Photoshop/Pixelmator Pro style with Liquid Glass)
 //
 
 import SwiftUI
@@ -13,104 +13,117 @@ struct TopToolbar: View {
     var body: some View {
         HStack(spacing: 0) {
             // Zoom Controls
-            HStack(spacing: 4) {
+            HStack(spacing: .spacing1) {
                 Button(action: documentState.zoomOut) {
                     Image(systemName: "minus.magnifyingglass")
-                        .font(.system(size: 13))
-                        .frame(width: 26, height: 26)
+                        .font(.system(size: .iconSmall + 1))
+                        .frame(width: .spacing6 + .spacing0_5, height: .spacing6 + .spacing0_5)
                 }
                 .buttonStyle(.borderless)
                 .help("Zoom Out (⌘-)")
+                .accessibilityLabel("Zoom out")
 
-                Button(action: {}) {
+                Button(action: documentState.zoomToFit) {
                     Text("\(Int(documentState.zoomLevel * 100))%")
-                        .font(.system(.caption, design: .monospaced, weight: .medium))
-                        .frame(minWidth: 52)
+                        .font(.monoMedium)
+                        .frame(minWidth: .spacing12 + .spacing1)
                 }
                 .buttonStyle(.borderless)
-                .help("Current Zoom Level")
+                .help("Zoom to Fit (Click)")
+                .accessibilityLabel("Zoom level \(Int(documentState.zoomLevel * 100)) percent")
+                .accessibilityHint("Tap to zoom to fit")
 
                 Button(action: documentState.zoomIn) {
                     Image(systemName: "plus.magnifyingglass")
-                        .font(.system(size: 13))
-                        .frame(width: 26, height: 26)
+                        .font(.system(size: .iconSmall + 1))
+                        .frame(width: .spacing6 + .spacing0_5, height: .spacing6 + .spacing0_5)
                 }
                 .buttonStyle(.borderless)
                 .help("Zoom In (⌘+)")
+                .accessibilityLabel("Zoom in")
 
                 Divider()
-                    .frame(height: 18)
-                    .padding(.horizontal, 4)
+                    .frame(height: .spacing4 + .spacing0_5)
+                    .padding(.horizontal, .spacing1)
 
                 Button(action: documentState.zoomToFit) {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .font(.system(size: 12))
-                        .frame(width: 26, height: 26)
+                        .font(.system(size: .iconSmall))
+                        .frame(width: .spacing6 + .spacing0_5, height: .spacing6 + .spacing0_5)
                 }
                 .buttonStyle(.borderless)
                 .help("Zoom to Fit (⌘0)")
+                .accessibilityLabel("Zoom to fit")
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.25))
-            .cornerRadius(5)
-            .padding(.leading, 12)
+            .padding(.horizontal, .spacing1_5)
+            .padding(.vertical, .spacing1)
+            .background(Color.surfaceSecondary.opacity(.opacityMediumLight))
+            .cornerRadius(.radiusSmall)
+            .padding(.leading, .spacing3)
 
             Divider()
-                .frame(height: 24)
-                .padding(.horizontal, 12)
+                .frame(height: .spacing6)
+                .padding(.horizontal, .spacing3)
 
             // View Options
-            HStack(spacing: 2) {
+            HStack(spacing: .spacing0_5) {
                 Toggle(isOn: $documentState.showGrid) {
                     Image(systemName: "grid")
-                        .font(.system(size: 14))
-                        .frame(width: 30, height: 28)
+                        .font(.system(size: .iconMediumSmall))
+                        .frame(width: .spacing7 + .spacing0_5, height: .spacing7)
                 }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
                 .help("Toggle Grid (⌘')")
+                .accessibilityLabel("Toggle grid")
+                .accessibilityValue(documentState.showGrid ? "On" : "Off")
 
                 Toggle(isOn: $documentState.showHoop) {
                     Image(systemName: "circle.dashed")
-                        .font(.system(size: 14))
-                        .frame(width: 30, height: 28)
+                        .font(.system(size: .iconMediumSmall))
+                        .frame(width: .spacing7 + .spacing0_5, height: .spacing7)
                 }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
                 .help("Toggle Hoop (⌘H)")
+                .accessibilityLabel("Toggle hoop")
+                .accessibilityValue(documentState.showHoop ? "On" : "Off")
 
                 Toggle(isOn: $documentState.showRulers) {
                     Image(systemName: "ruler")
-                        .font(.system(size: 14))
-                        .frame(width: 30, height: 28)
+                        .font(.system(size: .iconMediumSmall))
+                        .frame(width: .spacing7 + .spacing0_5, height: .spacing7)
                 }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
                 .help("Toggle Rulers (⌘R)")
+                .accessibilityLabel("Toggle rulers")
+                .accessibilityValue(documentState.showRulers ? "On" : "Off")
             }
 
             Spacer()
 
             // Document Info
-            HStack(spacing: 8) {
+            HStack(spacing: .spacing2) {
                 Image(systemName: "thread.fill")
-                    .font(.system(size: 11))
-                    .foregroundColor(.accentColor.opacity(0.8))
+                    .font(.system(size: .iconTiny + 1))
+                    .foregroundColor(.accentHigh)
                 Text("\(documentState.totalStitchCount)")
-                    .font(.system(.caption, design: .monospaced, weight: .medium))
-                    .foregroundColor(.primary.opacity(0.7))
+                    .font(.monoMedium)
+                    .foregroundColor(.textPrimary.opacity(.opacitySecondary))
                 Text("stitches")
-                    .font(.system(.caption2))
-                    .foregroundColor(.secondary)
+                    .font(.captionSmall)
+                    .foregroundColor(.textSecondary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.25))
-            .cornerRadius(5)
-            .padding(.trailing, 12)
+            .padding(.horizontal, .spacing2_5)
+            .padding(.vertical, .spacing1)
+            .background(Color.surfaceSecondary.opacity(.opacityMediumLight))
+            .cornerRadius(.radiusSmall)
+            .padding(.trailing, .spacing3)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(documentState.totalStitchCount) stitches in document")
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, .spacing1_5)
         .background(.ultraThinMaterial)
     }
 }
@@ -122,64 +135,71 @@ struct StatusBar: View {
     @StateObject private var toolManager = ToolManager.shared
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: .spacing3_5) {
             // Current tool
             if let tool = toolManager.selectedTool {
-                HStack(spacing: 6) {
+                HStack(spacing: .spacing1_5) {
                     Image(systemName: tool.icon)
-                        .font(.system(size: 12))
+                        .font(.system(size: .iconSmall))
                         .foregroundColor(.accentColor)
                     Text(tool.name)
-                        .font(.system(.caption, design: .rounded, weight: .medium))
-                        .foregroundColor(.primary.opacity(0.8))
+                        .font(.roundedMedium)
+                        .foregroundColor(.textPrimary.opacity(.opacityHigh))
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Current tool: \(tool.name)")
             }
 
             Divider()
-                .frame(height: 16)
+                .frame(height: .spacing4)
 
             // Cursor position / selection info
-            HStack(spacing: 5) {
+            HStack(spacing: .spacing1_5 - 1) {
                 Image(systemName: "location.fill")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary.opacity(0.7))
+                    .font(.system(size: .iconTiny))
+                    .foregroundColor(.textSecondary.opacity(.opacitySecondary))
                 Text("Ready")
-                    .font(.system(.caption2, design: .rounded))
-                    .foregroundColor(.secondary)
+                    .font(.captionSmall)
+                    .foregroundColor(.textSecondary)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Status: Ready")
 
             Spacer()
 
             // Layer info
             if let selectedID = documentState.selectedLayerID,
                let layer = documentState.document.layers.first(where: { $0.id == selectedID }) {
-                HStack(spacing: 6) {
+                HStack(spacing: .spacing1_5) {
                     Image(systemName: layer.isVisible ? "eye.fill" : "eye.slash")
-                        .font(.system(size: 11))
-                        .foregroundColor(layer.isVisible ? .secondary.opacity(0.7) : .red.opacity(0.8))
+                        .font(.system(size: .iconTiny + 1))
+                        .foregroundColor(layer.isVisible ? Color.statusVisible : Color.statusHidden)
                     Text(layer.name)
-                        .font(.system(.caption, design: .rounded, weight: .medium))
-                        .foregroundColor(.primary.opacity(0.8))
+                        .font(.roundedMedium)
+                        .foregroundColor(.textPrimary.opacity(.opacityHigh))
 
                     if layer.isLocked {
                         Image(systemName: "lock.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(.orange.opacity(0.9))
+                            .font(.system(size: .iconTiny + 1))
+                            .foregroundColor(.statusLocked)
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Selected layer: \(layer.name), \(layer.isVisible ? "visible" : "hidden")\(layer.isLocked ? ", locked" : "")")
             } else {
                 Text("No layer selected")
-                    .font(.system(.caption2, design: .rounded))
-                    .foregroundColor(.secondary.opacity(0.6))
+                    .font(.captionSmall)
+                    .foregroundColor(.textSecondary.opacity(.opacityMuted))
+                    .accessibilityLabel("No layer selected")
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 4)
+        .padding(.horizontal, .spacing3_5)
+        .padding(.vertical, .spacing1)
         .background(
             LinearGradient(
                 colors: [
-                    Color(nsColor: .windowBackgroundColor).opacity(0.98),
-                    Color(nsColor: .controlBackgroundColor).opacity(0.95)
+                    Color.surfacePrimary.opacity(.opacityNearFull),
+                    Color.surfaceSecondary.opacity(.opacityNearFull)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -187,8 +207,8 @@ struct StatusBar: View {
         )
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color(nsColor: .separatorColor).opacity(0.5))
-                .frame(height: 0.5)
+                .fill(Color.borderDefault.opacity(.opacityDisabled))
+                .frame(height: .lineHairline)
         }
     }
 }

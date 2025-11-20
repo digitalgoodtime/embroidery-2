@@ -2,7 +2,7 @@
 //  LayersSidebar.swift
 //  EmbroideryStudio
 //
-//  Layers management sidebar (left side, Pixelmator Pro style)
+//  Layers management sidebar (left side, Pixelmator Pro style with Liquid Glass)
 //
 
 import SwiftUI
@@ -15,20 +15,20 @@ struct LayersSidebar: View {
             // Header
             HStack {
                 Text("Layers")
-                    .font(.system(.subheadline, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .font(.headingSmall)
+                    .foregroundColor(.textPrimary)
 
                 Spacer()
 
                 Menu {
                     Button("New Layer") {
-                        withAnimation {
+                        withAnimation(.springQuick) {
                             documentState.addLayer(named: "Layer \(documentState.document.layers.count + 1)")
                         }
                     }
                     Button("Delete Layer") {
                         if let id = documentState.selectedLayerID {
-                            withAnimation {
+                            withAnimation(.springQuick) {
                                 documentState.deleteLayer(id: id)
                             }
                         }
@@ -36,7 +36,7 @@ struct LayersSidebar: View {
                     .disabled(documentState.selectedLayerID == nil)
                     Button("Duplicate Layer") {
                         if let id = documentState.selectedLayerID {
-                            withAnimation {
+                            withAnimation(.springQuick) {
                                 documentState.duplicateLayer(id: id)
                             }
                         }
@@ -56,61 +56,64 @@ struct LayersSidebar: View {
                     .disabled(true)
                 } label: {
                     Image(systemName: "ellipsis.circle")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.textSecondary)
                 }
                 .menuStyle(.borderlessButton)
-                .frame(width: 20, height: 20)
+                .frame(width: .spacing5, height: .spacing5)
+                .accessibilityLabel("Layer options menu")
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, .spacing3)
+            .padding(.vertical, .spacing2_5)
 
             Divider()
 
             // Layers List
             if documentState.document.layers.isEmpty {
-                VStack(spacing: 16) {
+                VStack(spacing: .spacing4) {
                     Spacer()
 
-                    VStack(spacing: 12) {
+                    VStack(spacing: .spacing3) {
                         Image(systemName: "square.3.layers.3d")
-                            .font(.system(size: 56))
-                            .foregroundColor(.accentColor.opacity(0.4))
+                            .font(.system(size: .iconHero))
+                            .foregroundColor(.accentMedium)
                             .symbolRenderingMode(.hierarchical)
 
-                        VStack(spacing: 6) {
+                        VStack(spacing: .spacing1_5) {
                             Text("No Layers")
-                                .font(.system(.title3, weight: .semibold))
-                                .foregroundColor(.primary.opacity(0.8))
+                                .font(.headingMedium)
+                                .foregroundColor(.textPrimary.opacity(.opacityHigh))
 
                             Text("Create a new layer to start designing your embroidery")
-                                .font(.system(.callout))
-                                .foregroundColor(.secondary)
+                                .font(.caption)
+                                .foregroundColor(.textSecondary)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
 
                     Button {
-                        withAnimation(.spring(response: 0.3)) {
+                        withAnimation(.springQuick) {
                             documentState.addLayer(named: "Layer 1")
                         }
                     } label: {
-                        HStack(spacing: 6) {
+                        HStack(spacing: .spacing1_5) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 14))
+                                .font(.system(size: .iconMediumSmall))
                             Text("Create Layer")
-                                .font(.system(.callout, weight: .medium))
+                                .font(.label)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, .spacing4)
+                        .padding(.vertical, .spacing2)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
+                    .accessibilityLabel("Create first layer")
+                    .accessibilityHint("Creates a new embroidery layer")
 
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(24)
+                .padding(.spacing6)
             } else {
                 List {
                     ForEach(documentState.document.layers.reversed()) { layer in
@@ -120,7 +123,7 @@ struct LayersSidebar: View {
                             documentState: documentState
                         )
                         .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                        .listRowInsets(EdgeInsets(top: .spacing0_5, leading: .spacing2, bottom: .spacing0_5, trailing: .spacing2))
                     }
                     .onMove { from, to in
                         var layers = Array(documentState.document.layers.reversed())
@@ -129,48 +132,53 @@ struct LayersSidebar: View {
                     }
                 }
                 .listStyle(.plain)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Layers list")
             }
 
             Divider()
 
             // Footer with actions
-            HStack(spacing: 6) {
+            HStack(spacing: .spacing1_5) {
                 Button(action: {
-                    withAnimation {
+                    withAnimation(.springQuick) {
                         documentState.addLayer(named: "Layer \(documentState.document.layers.count + 1)")
                     }
                 }) {
                     Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .medium))
-                        .frame(width: 24, height: 24)
+                        .font(.system(size: .iconMediumSmall, weight: .medium))
+                        .frame(width: .spacing6, height: .spacing6)
                 }
                 .buttonStyle(.borderless)
                 .help("New Layer (⌘⇧N)")
+                .accessibilityLabel("New layer")
 
                 Button(action: {
                     if let id = documentState.selectedLayerID {
-                        withAnimation {
+                        withAnimation(.springQuick) {
                             documentState.deleteLayer(id: id)
                         }
                     }
                 }) {
                     Image(systemName: "minus")
-                        .font(.system(size: 14, weight: .medium))
-                        .frame(width: 24, height: 24)
+                        .font(.system(size: .iconMediumSmall, weight: .medium))
+                        .frame(width: .spacing6, height: .spacing6)
                 }
                 .buttonStyle(.borderless)
                 .disabled(documentState.selectedLayerID == nil)
+                .opacity(documentState.selectedLayerID == nil ? .opacityDisabled : 1)
                 .help("Delete Layer (⌫)")
+                .accessibilityLabel("Delete layer")
 
                 Spacer()
 
                 Text("\(documentState.document.layers.count) layer\(documentState.document.layers.count == 1 ? "" : "s")")
-                    .font(.system(.caption, design: .rounded))
-                    .foregroundColor(.secondary)
+                    .font(.rounded)
+                    .foregroundColor(.textSecondary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
+            .padding(.horizontal, .spacing2_5)
+            .padding(.vertical, .spacing1_5)
+            .background(Color.surfaceSecondary.opacity(.opacityMedium))
         }
     }
 }
@@ -186,64 +194,79 @@ struct LayerRow: View {
     @State private var showOpacity = false
 
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 10) {
+        VStack(spacing: .spacing1) {
+            HStack(spacing: .spacing2_5) {
+                // Drag handle indicator
+                Image(systemName: "line.3.horizontal")
+                    .font(.system(size: .iconSmall))
+                    .foregroundColor(.textSecondary.opacity(.opacityDisabled))
+                    .opacity(isHovering ? 1 : 0)
+                    .frame(width: .spacing3)
+                    .accessibilityHidden(true)
+
                 // Visibility toggle
                 Button(action: {
                     documentState.toggleLayerVisibility(id: layer.id)
                 }) {
                     Image(systemName: layer.isVisible ? "eye.fill" : "eye.slash")
-                        .font(.system(size: 13))
-                        .foregroundColor(layer.isVisible ? .primary.opacity(0.7) : .secondary.opacity(0.6))
-                        .frame(width: 18, height: 18)
+                        .font(.system(size: .iconSmall + 1))
+                        .foregroundColor(layer.isVisible ? Color.statusVisible : Color.statusHidden)
+                        .frame(width: .spacing4 + .spacing0_5, height: .spacing4 + .spacing0_5)
                 }
                 .buttonStyle(.borderless)
                 .help(layer.isVisible ? "Hide Layer" : "Show Layer")
+                .accessibilityLabel(layer.isVisible ? "Hide layer \(layer.name)" : "Show layer \(layer.name)")
 
                 // Thumbnail (placeholder)
-                RoundedRectangle(cornerRadius: 3)
+                RoundedRectangle(cornerRadius: .radiusXSmall - 1)
                     .fill(
                         LinearGradient(
-                            colors: [Color.accentColor.opacity(0.4), Color.accentColor.opacity(0.2)],
+                            colors: [Color.accentMedium, Color.accentLight],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 34, height: 34)
+                    .frame(width: .spacing8 + .spacing0_5, height: .spacing8 + .spacing0_5)
                     .overlay {
                         Image(systemName: "square.on.square.dashed")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary.opacity(0.8))
+                            .font(.system(size: .iconSmall))
+                            .foregroundColor(.textSecondary.opacity(.opacityHigh))
                     }
                     .overlay(
-                        RoundedRectangle(cornerRadius: 3)
-                            .strokeBorder(Color.black.opacity(0.1), lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: .radiusXSmall - 1)
+                            .strokeBorder(Color.black.opacity(.opacityLight + .opacitySubtle), lineWidth: .lineHairline)
                     )
+                    .shadowSubtle()
+                    .accessibilityHidden(true)
 
                 // Layer name
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: .spacing0_5 + 1) {
                     Text(layer.name)
-                        .font(.system(.subheadline, weight: .medium))
+                        .font(.bodyEmphasis)
                         .lineLimit(1)
 
                     Text("\(layer.stitches.count) stitch group\(layer.stitches.count == 1 ? "" : "s")")
-                        .font(.system(.caption2))
-                        .foregroundColor(.secondary)
+                        .font(.captionSmall)
+                        .foregroundColor(.textSecondary)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(layer.name), \(layer.stitches.count) stitch groups")
 
-                Spacer(minLength: 4)
+                Spacer(minLength: .spacing1)
 
                 // Opacity indicator
                 if showOpacity || isHovering {
                     Text("\(Int(layer.opacity * 100))%")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(.secondary)
-                        .frame(width: 38, alignment: .trailing)
+                        .font(.mono)
+                        .foregroundColor(.textSecondary)
+                        .frame(width: .spacing10 - .spacing0_5, alignment: .trailing)
                         .onTapGesture {
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.springQuick) {
                                 showOpacity.toggle()
                             }
                         }
+                        .accessibilityLabel("Layer opacity \(Int(layer.opacity * 100)) percent")
+                        .accessibilityHint("Tap to toggle opacity slider")
                 }
 
                 // Lock toggle
@@ -251,48 +274,51 @@ struct LayerRow: View {
                     documentState.toggleLayerLock(id: layer.id)
                 }) {
                     Image(systemName: layer.isLocked ? "lock.fill" : "lock.open")
-                        .font(.system(size: 13))
-                        .foregroundColor(layer.isLocked ? .orange.opacity(0.9) : .secondary.opacity(0.6))
-                        .frame(width: 18, height: 18)
+                        .font(.system(size: .iconSmall + 1))
+                        .foregroundColor(layer.isLocked ? Color.statusLocked : Color.textSecondary.opacity(.opacityMuted))
+                        .frame(width: .spacing4 + .spacing0_5, height: .spacing4 + .spacing0_5)
                 }
                 .buttonStyle(.borderless)
                 .help(layer.isLocked ? "Unlock Layer" : "Lock Layer")
                 .opacity(isHovering || layer.isLocked ? 1 : 0)
+                .accessibilityLabel(layer.isLocked ? "Unlock layer \(layer.name)" : "Lock layer \(layer.name)")
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, .spacing2_5)
+            .padding(.vertical, .spacing2 - 1)
             .background(
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(isSelected ? Color.accentColor.opacity(0.18) : (isHovering ? Color.secondary.opacity(0.06) : Color.clear))
+                RoundedRectangle(cornerRadius: .radiusSmall)
+                    .fill(isSelected ? Color.interactiveSelected : (isHovering ? Color.interactiveHover : Color.clear))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 5)
-                    .strokeBorder(isSelected ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
+                RoundedRectangle(cornerRadius: .radiusSmall)
+                    .strokeBorder(isSelected ? Color.borderFocus : Color.clear, lineWidth: .lineStandard)
             )
 
             // Opacity slider (shown when clicked)
             if showOpacity {
-                HStack(spacing: 10) {
+                HStack(spacing: .spacing2_5) {
                     Text("Opacity:")
-                        .font(.system(.caption2, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .frame(width: 52, alignment: .leading)
+                        .font(.labelSemibold)
+                        .foregroundColor(.textSecondary)
+                        .frame(width: .spacing12 + .spacing1, alignment: .leading)
 
                     Slider(value: opacityBinding, in: 0...1)
                         .controlSize(.small)
                         .tint(.accentColor)
 
                     Text("\(Int(layer.opacity * 100))%")
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundColor(.primary.opacity(0.8))
-                        .frame(width: 36, alignment: .trailing)
+                        .font(.captionSmallMedium)
+                        .foregroundColor(.textPrimary.opacity(.opacityHigh))
+                        .frame(width: .spacing8 + .spacing1, alignment: .trailing)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color(nsColor: .controlBackgroundColor).opacity(0.2))
-                .cornerRadius(4)
-                .padding(.horizontal, 6)
-                .padding(.bottom, 4)
+                .padding(.horizontal, .spacing3)
+                .padding(.vertical, .spacing1_5)
+                .background(Color.surfaceSecondary.opacity(.opacityMedium))
+                .cornerRadius(.radiusXSmall)
+                .padding(.horizontal, .spacing1_5)
+                .padding(.bottom, .spacing1)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Opacity slider")
             }
         }
         .contentShape(Rectangle())
@@ -300,7 +326,9 @@ struct LayerRow: View {
             documentState.selectedLayerID = layer.id
         }
         .onHover { hovering in
-            isHovering = hovering
+            withAnimation(.uiFast) {
+                isHovering = hovering
+            }
         }
         .contextMenu {
             Button("Rename") {
@@ -314,6 +342,8 @@ struct LayerRow: View {
                 documentState.deleteLayer(id: layer.id)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
     private var opacityBinding: Binding<Double> {
