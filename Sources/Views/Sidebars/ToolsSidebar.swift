@@ -126,7 +126,7 @@ struct PropertiesPanelView: View {
                         Text("Hoop Size:")
                         Spacer()
                         Picker("", selection: $documentState.document.canvas.hoopSize) {
-                            ForEach(Canvas.HoopSize.allCases, id: \.self) { size in
+                            ForEach(EmbroideryCanvas.HoopSize.allCases, id: \.self) { size in
                                 Text(size.rawValue).tag(size)
                             }
                         }
