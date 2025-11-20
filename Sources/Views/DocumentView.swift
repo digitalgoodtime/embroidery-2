@@ -34,6 +34,7 @@ struct DocumentView: View {
                     LayersSidebar(documentState: documentState)
                         .frame(width: layersSidebarWidth)
                         .background(.ultraThinMaterial)
+                        .shadowLight()
 
                     ResizableDivider { delta in
                         let newWidth = layersSidebarWidth + delta
@@ -66,6 +67,7 @@ struct DocumentView: View {
                     PropertiesSidebar(documentState: documentState)
                         .frame(width: propertiesSidebarWidth)
                         .background(.ultraThinMaterial)
+                        .shadowLight()
                 }
             }
         }

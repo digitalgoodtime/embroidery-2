@@ -46,7 +46,8 @@ struct ToolPalette: View {
             .padding(.vertical, .spacing2)
         }
         .frame(width: .toolPaletteWidth)
-        .background(Color.surfaceSecondary.opacity(.opacityVeryStrong))
+        .background(.ultraThinMaterial)
+        .shadowLight()
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Tool palette")
     }

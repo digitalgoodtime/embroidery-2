@@ -64,8 +64,7 @@ struct LayersSidebar: View {
             }
             .padding(.horizontal, .spacing3)
             .padding(.vertical, .spacing2_5)
-
-            Divider()
+            .background(Color.surfaceSecondary.opacity(.opacityLight))
 
             // Layers List
             if documentState.document.layers.isEmpty {
@@ -136,8 +135,6 @@ struct LayersSidebar: View {
                 .accessibilityLabel("Layers list")
             }
 
-            Divider()
-
             // Footer with actions
             HStack(spacing: .spacing1_5) {
                 Button(action: {
@@ -199,8 +196,9 @@ struct LayerRow: View {
                 // Drag handle indicator
                 Image(systemName: "line.3.horizontal")
                     .font(.system(size: .iconSmall))
-                    .foregroundColor(.textSecondary.opacity(.opacityDisabled))
-                    .opacity(isHovering ? 1 : 0)
+                    .foregroundColor(.textSecondary)
+                    .opacity(isHovering ? 1 : .opacityStrong)
+                    .animation(.uiFast, value: isHovering)
                     .frame(width: .spacing3)
                     .accessibilityHidden(true)
 
@@ -209,16 +207,16 @@ struct LayerRow: View {
                     documentState.toggleLayerVisibility(id: layer.id)
                 }) {
                     Image(systemName: layer.isVisible ? "eye.fill" : "eye.slash")
-                        .font(.system(size: .iconSmall + 1))
+                        .font(.system(size: .iconSmall))
                         .foregroundColor(layer.isVisible ? Color.statusVisible : Color.statusHidden)
-                        .frame(width: .spacing4 + .spacing0_5, height: .spacing4 + .spacing0_5)
+                        .frame(width: .controlSmall, height: .controlSmall)
                 }
                 .buttonStyle(.borderless)
                 .help(layer.isVisible ? "Hide Layer" : "Show Layer")
                 .accessibilityLabel(layer.isVisible ? "Hide layer \(layer.name)" : "Show layer \(layer.name)")
 
                 // Thumbnail (placeholder)
-                RoundedRectangle(cornerRadius: .radiusXSmall - 1)
+                RoundedRectangle(cornerRadius: .radiusXSmall)
                     .fill(
                         LinearGradient(
                             colors: [Color.accentMedium, Color.accentLight],
@@ -226,21 +224,21 @@ struct LayerRow: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: .spacing8 + .spacing0_5, height: .spacing8 + .spacing0_5)
+                    .frame(width: .spacing8, height: .spacing8)
                     .overlay {
                         Image(systemName: "square.on.square.dashed")
                             .font(.system(size: .iconSmall))
                             .foregroundColor(.textSecondary.opacity(.opacityHigh))
                     }
                     .overlay(
-                        RoundedRectangle(cornerRadius: .radiusXSmall - 1)
-                            .strokeBorder(Color.black.opacity(.opacityLight + .opacitySubtle), lineWidth: .lineHairline)
+                        RoundedRectangle(cornerRadius: .radiusXSmall)
+                            .strokeBorder(Color.borderDefault.opacity(.opacityLight), lineWidth: .lineHairline)
                     )
                     .shadowSubtle()
                     .accessibilityHidden(true)
 
                 // Layer name
-                VStack(alignment: .leading, spacing: .spacing0_5 + 1) {
+                VStack(alignment: .leading, spacing: .spacing1) {
                     Text(layer.name)
                         .font(.bodyEmphasis)
                         .lineLimit(1)
@@ -259,7 +257,7 @@ struct LayerRow: View {
                     Text("\(Int(layer.opacity * 100))%")
                         .font(.mono)
                         .foregroundColor(.textSecondary)
-                        .frame(width: .spacing10 - .spacing0_5, alignment: .trailing)
+                        .frame(width: .spacing10, alignment: .trailing)
                         .onTapGesture {
                             withAnimation(.springQuick) {
                                 showOpacity.toggle()
@@ -274,9 +272,9 @@ struct LayerRow: View {
                     documentState.toggleLayerLock(id: layer.id)
                 }) {
                     Image(systemName: layer.isLocked ? "lock.fill" : "lock.open")
-                        .font(.system(size: .iconSmall + 1))
+                        .font(.system(size: .iconSmall))
                         .foregroundColor(layer.isLocked ? Color.statusLocked : Color.textSecondary.opacity(.opacityMuted))
-                        .frame(width: .spacing4 + .spacing0_5, height: .spacing4 + .spacing0_5)
+                        .frame(width: .controlSmall, height: .controlSmall)
                 }
                 .buttonStyle(.borderless)
                 .help(layer.isLocked ? "Unlock Layer" : "Lock Layer")
@@ -284,7 +282,7 @@ struct LayerRow: View {
                 .accessibilityLabel(layer.isLocked ? "Unlock layer \(layer.name)" : "Lock layer \(layer.name)")
             }
             .padding(.horizontal, .spacing2_5)
-            .padding(.vertical, .spacing2 - 1)
+            .padding(.vertical, .spacing2)
             .background(
                 RoundedRectangle(cornerRadius: .radiusSmall)
                     .fill(isSelected ? Color.interactiveSelected : (isHovering ? Color.interactiveHover : Color.clear))
@@ -300,7 +298,7 @@ struct LayerRow: View {
                     Text("Opacity:")
                         .font(.labelSemibold)
                         .foregroundColor(.textSecondary)
-                        .frame(width: .spacing12 + .spacing1, alignment: .leading)
+                        .frame(width: .spacing12, alignment: .leading)
 
                     Slider(value: opacityBinding, in: 0...1)
                         .controlSize(.small)
@@ -308,15 +306,16 @@ struct LayerRow: View {
 
                     Text("\(Int(layer.opacity * 100))%")
                         .font(.captionSmallMedium)
-                        .foregroundColor(.textPrimary.opacity(.opacityHigh))
-                        .frame(width: .spacing8 + .spacing1, alignment: .trailing)
+                        .foregroundColor(.textPrimary)
+                        .frame(width: .spacing8, alignment: .trailing)
                 }
                 .padding(.horizontal, .spacing3)
                 .padding(.vertical, .spacing1_5)
                 .background(Color.surfaceSecondary.opacity(.opacityMedium))
-                .cornerRadius(.radiusXSmall)
+                .cornerRadius(.radiusSmall)
                 .padding(.horizontal, .spacing1_5)
                 .padding(.bottom, .spacing1)
+                .transition(.move(edge: .top).combined(with: .opacity))
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel("Opacity slider")
             }
