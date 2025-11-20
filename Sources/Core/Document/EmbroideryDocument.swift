@@ -149,13 +149,23 @@ struct CodableColor: Codable, Equatable {
     var alpha: Double
 
     init(_ color: NSColor) {
-        self.red = Double(color.redComponent)
-        self.green = Double(color.greenComponent)
-        self.blue = Double(color.blueComponent)
-        self.alpha = Double(color.alphaComponent)
+        // Convert to RGB color space if needed
+        guard let rgbColor = color.usingColorSpace(.deviceRGB) else {
+            // Fallback to white if conversion fails
+            self.red = 1.0
+            self.green = 1.0
+            self.blue = 1.0
+            self.alpha = 1.0
+            return
+        }
+
+        self.red = Double(rgbColor.redComponent)
+        self.green = Double(rgbColor.greenComponent)
+        self.blue = Double(rgbColor.blueComponent)
+        self.alpha = Double(rgbColor.alphaComponent)
     }
 
     var nsColor: NSColor {
-        NSColor(red: red, green: green, blue: blue, alpha: alpha)
+        NSColor(deviceRed: red, green: green, blue: blue, alpha: alpha)
     }
 }
