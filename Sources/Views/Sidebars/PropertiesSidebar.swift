@@ -35,7 +35,7 @@ struct PropertiesSidebar: View {
             ScrollView {
                 switch selectedTab {
                 case .properties:
-                    PropertiesPanelView(documentState: documentState, toolManager: toolManager)
+                    PropertiesPanelView(documentState: documentState)
                 case .stitch:
                     StitchPlayerPanelView(documentState: documentState)
                 }
@@ -48,7 +48,7 @@ struct PropertiesSidebar: View {
 
 struct PropertiesPanelView: View {
     @ObservedObject var documentState: DocumentState
-    @ObservedObject var toolManager: ToolManager
+    @StateObject private var toolManager = ToolManager.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
