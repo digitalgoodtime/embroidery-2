@@ -103,7 +103,7 @@ struct RulersView: View {
 
                 context.stroke(
                     borderPath,
-                    with: .color(.separator),
+                    with: .color(Color(nsColor: .separatorColor)),
                     lineWidth: 1
                 )
             }
@@ -122,6 +122,6 @@ struct RulerCorner: View {
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
             }
-            .border(Color.separator, width: 1)
+            .border(Color(nsColor: .separatorColor), width: 1)
     }
 }
