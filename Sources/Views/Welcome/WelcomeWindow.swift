@@ -164,7 +164,7 @@ struct WelcomeButton: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.separator, lineWidth: 1)
+                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
