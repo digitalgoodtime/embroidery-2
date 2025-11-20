@@ -9,39 +9,9 @@ import SwiftUI
 
 struct TopToolbar: View {
     @ObservedObject var documentState: DocumentState
-    @StateObject private var toolManager = ToolManager.shared
 
     var body: some View {
         HStack(spacing: 0) {
-            // Quick Tool Palette
-            HStack(spacing: 2) {
-                ForEach([
-                    toolManager.availableTools.first(where: { $0.id == "selection" }),
-                    toolManager.availableTools.first(where: { $0.id == "zoom" }),
-                    toolManager.availableTools.first(where: { $0.id == "manual-digitize" }),
-                    toolManager.availableTools.first(where: { $0.id == "text" })
-                ].compactMap { $0 }, id: \.id) { tool in
-                    ToolbarButton(
-                        tool: tool,
-                        isSelected: toolManager.selectedTool?.id == tool.id,
-                        action: {
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                toolManager.selectTool(tool)
-                            }
-                        }
-                    )
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
-            .cornerRadius(8)
-            .padding(.leading, 8)
-
-            Divider()
-                .frame(height: 24)
-                .padding(.horizontal, 12)
-
             // Zoom Controls
             HStack(spacing: 6) {
                 Button(action: documentState.zoomOut) {
@@ -77,6 +47,7 @@ struct TopToolbar: View {
             .padding(.vertical, 4)
             .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
             .cornerRadius(6)
+            .padding(.leading, 12)
 
             Divider()
                 .frame(height: 24)
@@ -119,44 +90,10 @@ struct TopToolbar: View {
                 }
                 .foregroundColor(.secondary)
             }
-            .padding(.trailing, 8)
+            .padding(.trailing, 12)
         }
         .padding(.vertical, 6)
         .background(.ultraThinMaterial)
-    }
-}
-
-// MARK: - Toolbar Button
-
-struct ToolbarButton: View {
-    let tool: any Tool
-    let isSelected: Bool
-    let action: () -> Void
-
-    @State private var isHovering = false
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: tool.icon)
-                .frame(width: 32, height: 32)
-                .background(
-                    Group {
-                        if isSelected {
-                            Color.accentColor
-                        } else if isHovering {
-                            Color.secondary.opacity(0.2)
-                        } else {
-                            Color.clear
-                        }
-                    }
-                )
-                .cornerRadius(6)
-        }
-        .buttonStyle(.borderless)
-        .help(tool.tooltip)
-        .onHover { hovering in
-            isHovering = hovering
-        }
     }
 }
 

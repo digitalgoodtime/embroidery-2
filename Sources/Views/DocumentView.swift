@@ -2,7 +2,7 @@
 //  DocumentView.swift
 //  EmbroideryStudio
 //
-//  Main document view with Pixelmator Pro-inspired layout
+//  Main document view with Photoshop-inspired layout
 //
 
 import SwiftUI
@@ -13,10 +13,10 @@ struct DocumentView: View {
     @StateObject private var toolManager = ToolManager.shared
 
     // Sidebar state
-    @State private var showLeftSidebar = true
-    @State private var showRightSidebar = true
-    @State private var leftSidebarWidth: CGFloat = 250
-    @State private var rightSidebarWidth: CGFloat = 250
+    @State private var showLayersSidebar = true
+    @State private var showPropertiesSidebar = true
+    @State private var layersSidebarWidth: CGFloat = 250
+    @State private var propertiesSidebarWidth: CGFloat = 280
 
     init(document: Binding<EmbroideryDocument>) {
         self._document = document
@@ -26,15 +26,18 @@ struct DocumentView: View {
     var body: some View {
         GeometryReader { geometry in
             HStack(spacing: 0) {
-                // Left Sidebar - Layers Panel
-                if showLeftSidebar {
+                // Tool Palette (always visible)
+                ToolPalette()
+
+                // Layers Sidebar
+                if showLayersSidebar {
                     LayersSidebar(documentState: documentState)
-                        .frame(width: leftSidebarWidth)
+                        .frame(width: layersSidebarWidth)
                         .background(.ultraThinMaterial)
 
                     ResizableDivider { delta in
-                        let newWidth = leftSidebarWidth + delta
-                        leftSidebarWidth = max(200, min(400, newWidth))
+                        let newWidth = layersSidebarWidth + delta
+                        layersSidebarWidth = max(200, min(400, newWidth))
                     }
                 }
 
@@ -53,15 +56,15 @@ struct DocumentView: View {
                         .frame(height: 28)
                 }
 
-                // Right Sidebar - Tools Panel
-                if showRightSidebar {
+                // Properties Sidebar
+                if showPropertiesSidebar {
                     ResizableDivider { delta in
-                        let newWidth = rightSidebarWidth - delta
-                        rightSidebarWidth = max(200, min(400, newWidth))
+                        let newWidth = propertiesSidebarWidth - delta
+                        propertiesSidebarWidth = max(200, min(400, newWidth))
                     }
 
-                    ToolsSidebar(documentState: documentState)
-                        .frame(width: rightSidebarWidth)
+                    PropertiesSidebar(documentState: documentState)
+                        .frame(width: propertiesSidebarWidth)
                         .background(.ultraThinMaterial)
                 }
             }
@@ -70,7 +73,7 @@ struct DocumentView: View {
             ToolbarItem(placement: .navigation) {
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        showLeftSidebar.toggle()
+                        showLayersSidebar.toggle()
                     }
                 }) {
                     Image(systemName: "sidebar.left")
@@ -81,12 +84,12 @@ struct DocumentView: View {
             ToolbarItem(placement: .automatic) {
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        showRightSidebar.toggle()
+                        showPropertiesSidebar.toggle()
                     }
                 }) {
                     Image(systemName: "sidebar.right")
                 }
-                .help("Toggle Tools Panel (⌘⌥2)")
+                .help("Toggle Properties Panel (⌘⌥2)")
             }
         }
         .onChange(of: documentState.document) { newValue in
