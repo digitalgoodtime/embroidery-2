@@ -12,23 +12,28 @@ struct ResizableDivider: View {
 
     @State private var isHovering = false
     @State private var isDragging = false
+    @State private var cursorPushed = false
 
     var body: some View {
         Rectangle()
             .fill(Color.clear)
-            .frame(width: 8)
+            .frame(width: .spacing2)
             .overlay {
                 Rectangle()
-                    .fill(isHovering || isDragging ? Color.accentColor.opacity(0.5) : Color.clear)
-                    .frame(width: 1)
+                    .fill(isHovering || isDragging ? Color.accentStrong : Color.clear)
+                    .frame(width: .lineStandard)
+                    .animation(.uiFast, value: isHovering)
+                    .animation(.uiFast, value: isDragging)
             }
             .contentShape(Rectangle())
             .onHover { hovering in
                 isHovering = hovering
-                if hovering {
+                if hovering && !cursorPushed {
                     NSCursor.resizeLeftRight.push()
-                } else if !isDragging {
+                    cursorPushed = true
+                } else if !hovering && !isDragging && cursorPushed {
                     NSCursor.pop()
+                    cursorPushed = false
                 }
             }
             .gesture(
@@ -36,17 +41,23 @@ struct ResizableDivider: View {
                     .onChanged { value in
                         if !isDragging {
                             isDragging = true
-                            NSCursor.resizeLeftRight.push()
+                            if !cursorPushed {
+                                NSCursor.resizeLeftRight.push()
+                                cursorPushed = true
+                            }
                         }
                         onDrag(value.translation.width)
                     }
                     .onEnded { _ in
                         isDragging = false
-                        NSCursor.pop()
-                        if !isHovering {
+                        if !isHovering && cursorPushed {
                             NSCursor.pop()
+                            cursorPushed = false
                         }
                     }
             )
+            .accessibilityLabel("Resize panel divider")
+            .accessibilityHint("Drag to resize the panel width")
+            .accessibilityAddTraits(.isButton)
     }
 }

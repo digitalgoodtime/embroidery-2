@@ -2,7 +2,7 @@
 //  WelcomeWindow.swift
 //  EmbroideryStudio
 //
-//  Welcome screen for new users and quick access
+//  Welcome screen for new users and quick access with Liquid Glass design
 //
 
 import SwiftUI
@@ -13,29 +13,29 @@ struct WelcomeWindow: View {
     var body: some View {
         HStack(spacing: 0) {
             // Left side - Hero
-            VStack(spacing: 24) {
+            VStack(spacing: .spacing6) {
                 Spacer()
 
                 Image(systemName: "square.3.layers.3d.down.right")
-                    .font(.system(size: 90))
+                    .font(.system(size: .iconHeroXL))
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.accentColor, .accentColor.opacity(0.7)],
+                            colors: [.accentColor, .accentHigh],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .shadow(color: .accentColor.opacity(0.2), radius: 20, x: 0, y: 10)
+                    .shadow(color: .accentMedium, radius: .spacing5, x: 0, y: .spacing2_5)
 
-                VStack(spacing: 8) {
+                VStack(spacing: .spacing2) {
                     Text("Embroidery Studio")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
+                        .font(.headingHero)
+                        .foregroundColor(.textPrimary)
 
                     Text("Professional embroidery design for Mac")
-                        .font(.system(.title3))
-                        .foregroundColor(.secondary)
+                        .font(.headingMedium)
+                        .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.center)
                 }
 
@@ -45,25 +45,28 @@ struct WelcomeWindow: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color(nsColor: .controlBackgroundColor).opacity(0.6),
-                        Color(nsColor: .controlBackgroundColor).opacity(0.4)
+                        Color.surfaceSecondary.opacity(.opacityMuted),
+                        Color.surfaceSecondary.opacity(.opacityVeryStrong)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
             )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Embroidery Studio")
+            .accessibilityHint("Professional embroidery design application")
 
             // Right side - Actions
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .spacing6) {
+                VStack(alignment: .leading, spacing: .spacing3) {
                     Text("Get Started")
-                        .font(.title2.bold())
+                        .font(.headingLarge)
 
                     Divider()
                 }
 
                 // New Document Options
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: .spacing3) {
                     WelcomeButton(
                         icon: "doc.badge.plus",
                         title: "New Design",
@@ -103,15 +106,15 @@ struct WelcomeWindow: View {
                 Divider()
 
                 // Recent Documents
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: .spacing2) {
                     Text("Recent")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+                        .font(.bodyEmphasis)
+                        .foregroundColor(.textSecondary)
 
                     Text("No recent documents")
                         .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.vertical, 20)
+                        .foregroundColor(.textSecondary)
+                        .padding(.vertical, .spacing5)
                 }
 
                 Spacer()
@@ -129,8 +132,8 @@ struct WelcomeWindow: View {
                     .keyboardShortcut(.cancelAction)
                 }
             }
-            .padding(30)
-            .frame(width: 400)
+            .padding(.spacing7 + .spacing0_5)
+            .frame(width: .sidebarMaxWidth)
         }
         .frame(width: 750, height: 500)
     }
@@ -153,53 +156,59 @@ struct WelcomeButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 14) {
+            HStack(spacing: .spacing3_5) {
                 Image(systemName: icon)
-                    .font(.system(size: 22))
-                    .foregroundColor(.accentColor.opacity(isHovering ? 1.0 : 0.8))
-                    .frame(width: 44, height: 44)
+                    .font(.system(size: .iconXLarge))
+                    .foregroundColor(.accentColor.opacity(isHovering ? 1.0 : .opacityHigh))
+                    .frame(width: .controlLarge + .spacing3, height: .controlLarge + .spacing3)
                     .background(
                         Circle()
-                            .fill(Color.accentColor.opacity(isHovering ? 0.15 : 0.1))
+                            .fill(Color.accentColor.opacity(isHovering ? .opacityMediumLight : .opacityLight))
                     )
+                    .shadowSubtle()
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: .spacing0_5 + 1) {
                     Text(title)
-                        .font(.system(.body, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .font(.bodySemibold)
+                        .foregroundColor(.textPrimary)
 
                     Text(subtitle)
-                        .font(.system(.caption))
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.secondary.opacity(0.6))
-                    .opacity(isHovering ? 1 : 0.5)
+                    .font(.system(size: .iconSmall, weight: .semibold))
+                    .foregroundColor(.textSecondary.opacity(.opacityMuted))
+                    .opacity(isHovering ? 1 : .opacityDisabled)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, .spacing3_5)
+            .padding(.vertical, .spacing3)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isHovering ? Color.accentColor.opacity(0.08) : Color(nsColor: .controlBackgroundColor).opacity(0.3))
+                RoundedRectangle(cornerRadius: .radiusMedium)
+                    .fill(isHovering ? Color.accentSubtle : Color.surfaceSecondary.opacity(.opacityMedium))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: .radiusMedium)
                     .strokeBorder(
-                        isHovering ? Color.accentColor.opacity(0.3) : Color(nsColor: .separatorColor).opacity(0.5),
-                        lineWidth: 1
+                        isHovering ? Color.borderAccent : Color.borderSubtle,
+                        lineWidth: .lineStandard
                     )
             )
+            .shadowLight()
         }
         .buttonStyle(.plain)
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(.uiDefault) {
                 isHovering = hovering
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityHint(subtitle)
+        .accessibilityAddTraits(.isButton)
     }
 }
 

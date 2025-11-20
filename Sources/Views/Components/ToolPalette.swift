@@ -2,7 +2,7 @@
 //  ToolPalette.swift
 //  EmbroideryStudio
 //
-//  Vertical tool palette - Photoshop/Illustrator style
+//  Vertical tool palette - Photoshop/Illustrator style with Liquid Glass design
 //
 
 import SwiftUI
@@ -19,34 +19,36 @@ struct ToolPalette: View {
 
                     if !tools.isEmpty {
                         // Category tools
-                        VStack(spacing: 2) {
+                        VStack(spacing: .spacing0_5) {
                             ForEach(tools, id: \.id) { tool in
                                 ToolPaletteButton(
                                     tool: tool,
                                     isSelected: toolManager.selectedTool?.id == tool.id,
                                     action: {
-                                        withAnimation(.easeInOut(duration: 0.15)) {
+                                        withAnimation(.uiDefault) {
                                             toolManager.selectTool(tool)
                                         }
                                     }
                                 )
                             }
                         }
-                        .padding(.vertical, 6)
+                        .padding(.vertical, .spacing1_5)
 
                         // Category divider (except for last category)
                         if category != ToolCategory.allCases.last {
                             Divider()
-                                .padding(.horizontal, 12)
-                                .opacity(0.5)
+                                .padding(.horizontal, .spacing3)
+                                .opacity(.opacityDisabled)
                         }
                     }
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, .spacing2)
         }
-        .frame(width: 52)
-        .background(Color(nsColor: .controlBackgroundColor).opacity(0.4))
+        .frame(width: .toolPaletteWidth)
+        .background(Color.surfaceSecondary.opacity(.opacityVeryStrong))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Tool palette")
     }
 }
 
@@ -62,15 +64,15 @@ struct ToolPaletteButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: tool.icon)
-                .font(.system(size: 18, weight: .regular))
+                .font(.toolIcon(size: .iconMediumLarge))
                 .imageScale(.medium)
-                .frame(width: 44, height: 38)
+                .frame(width: .controlLarge + .spacing3, height: .controlXLarge)
                 .background(
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: .radiusSmall)
                         .fill(backgroundColor)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: .radiusSmall)
                         .strokeBorder(borderColor, lineWidth: borderWidth)
                 )
                 .foregroundColor(foregroundColor)
@@ -78,36 +80,39 @@ struct ToolPaletteButton: View {
         .buttonStyle(.borderless)
         .help(tooltipText)
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.1)) {
+            withAnimation(.uiFast) {
                 isHovering = hovering
             }
         }
+        .accessibilityLabel(tool.name)
+        .accessibilityHint("Activate \(tool.name) tool")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     private var backgroundColor: Color {
         if isSelected {
             return Color.accentColor
         } else if isHovering {
-            return Color.secondary.opacity(0.12)
+            return Color.interactiveHoverStrong
         } else {
             return Color.clear
         }
     }
 
     private var foregroundColor: Color {
-        isSelected ? .white : .primary
+        isSelected ? .textOnAccent : .textPrimary
     }
 
     private var borderColor: Color {
         if isSelected {
-            return Color.accentColor.opacity(0.3)
+            return Color.borderAccent
         } else {
             return Color.clear
         }
     }
 
     private var borderWidth: CGFloat {
-        isSelected ? 1.5 : 0
+        isSelected ? .lineEmphasis : 0
     }
 
     private var tooltipText: String {
