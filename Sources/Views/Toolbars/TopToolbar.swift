@@ -23,15 +23,15 @@ struct TopToolbar: View {
                 .help("Zoom Out (⌘-)")
                 .accessibilityLabel("Zoom out")
 
-                Button(action: documentState.resetZoom) {
+                Button(action: documentState.zoomToFit) {
                     Text("\(Int(documentState.zoomLevel * 100))%")
                         .font(.monoMedium)
                         .frame(minWidth: .spacing12 + .spacing1)
                 }
                 .buttonStyle(.borderless)
-                .help("Reset to 100% (Click)")
+                .help("Zoom to Fit (Click)")
                 .accessibilityLabel("Zoom level \(Int(documentState.zoomLevel * 100)) percent")
-                .accessibilityHint("Tap to reset to 100%")
+                .accessibilityHint("Tap to zoom to fit")
 
                 Button(action: documentState.zoomIn) {
                     Image(systemName: "plus.magnifyingglass")
