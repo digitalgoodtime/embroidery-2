@@ -13,6 +13,8 @@ struct CanvasView: View {
 
     @State private var dragOffset: CGSize = .zero
     @GestureState private var magnificationAmount: CGFloat = 1.0
+    @State private var showTextDialog: Bool = false
+    @State private var textDialogPosition: CGPoint = .zero
 
     var body: some View {
         GeometryReader { geometry in
@@ -38,7 +40,13 @@ struct CanvasView: View {
 
                 // Layers
                 ForEach(documentState.document.layers.filter { $0.isVisible }) { layer in
-                    LayerView(layer: layer, zoomLevel: documentState.zoomLevel)
+                    LayerView(
+                        layer: layer,
+                        zoomLevel: documentState.zoomLevel,
+                        showStitchPoints: documentState.showStitchPoints,
+                        showThreadPath: documentState.showThreadPath,
+                        stitchPointSize: documentState.stitchPointSize
+                    )
                 }
 
                 // Overlay for current tool
@@ -80,6 +88,33 @@ struct CanvasView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Embroidery canvas")
         .accessibilityHint("Drag to pan, pinch to zoom, tap to use current tool")
+        .sheet(isPresented: $showTextDialog) {
+            TextInputDialog(
+                position: textDialogPosition,
+                defaultColor: getCurrentThreadColor(),
+                onConfirm: { textObject in
+                    documentState.addText(textObject)
+                }
+            )
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showTextInputDialog)) { notification in
+            if let positionValue = notification.userInfo?[TextToolNotificationKey.position] as? NSValue {
+                textDialogPosition = positionValue.pointValue
+                showTextDialog = true
+            }
+        }
+    }
+
+    private func getCurrentThreadColor() -> CodableColor {
+        // Try to get the last used color from the current layer
+        if let selectedID = documentState.selectedLayerID,
+           let layer = documentState.document.layers.first(where: { $0.id == selectedID }),
+           let lastStitch = layer.stitches.last {
+            return lastStitch.color
+        }
+
+        // Default to black
+        return CodableColor(nsColor: .black)
     }
 
     private func handleCanvasTap(at location: CGPoint, in geometry: GeometryProxy) {
@@ -213,11 +248,12 @@ struct HoopView: View {
 struct LayerView: View {
     let layer: EmbroideryLayer
     let zoomLevel: Double
+    let showStitchPoints: Bool
+    let showThreadPath: Bool
+    let stitchPointSize: Double
 
     var body: some View {
         Canvas { context, size in
-            // TODO: Render stitches
-            // For now, just show placeholder
             for stitchGroup in layer.stitches {
                 drawStitchGroup(stitchGroup, in: context, size: size)
             }
@@ -228,26 +264,59 @@ struct LayerView: View {
     private func drawStitchGroup(_ group: StitchGroup, in context: GraphicsContext, size: CGSize) {
         guard !group.points.isEmpty else { return }
 
-        let path = Path { path in
-            if let first = group.points.first {
-                path.move(to: CGPoint(
-                    x: first.x * zoomLevel + size.width / 2,
-                    y: first.y * zoomLevel + size.height / 2
-                ))
+        let color = Color(group.color.nsColor)
 
-                for point in group.points.dropFirst() {
-                    path.addLine(to: CGPoint(
-                        x: point.x * zoomLevel + size.width / 2,
-                        y: point.y * zoomLevel + size.height / 2
-                    ))
+        // Draw thread path (connecting lines)
+        if showThreadPath || !showStitchPoints {
+            let path = Path { path in
+                if let first = group.points.first {
+                    path.move(to: transformPoint(first, size: size))
+
+                    for point in group.points.dropFirst() {
+                        path.addLine(to: transformPoint(point, size: size))
+                    }
                 }
             }
+
+            context.stroke(
+                path,
+                with: .color(color),
+                lineWidth: showStitchPoints ? .lineHairline : .lineStandard
+            )
         }
 
-        context.stroke(
-            path,
-            with: .color(Color(group.color.nsColor)),
-            lineWidth: .lineStandard
+        // Draw stitch points
+        if showStitchPoints {
+            for point in group.points {
+                let center = transformPoint(point, size: size)
+
+                // Draw stitch point as small circle
+                let pointPath = Path { path in
+                    path.addEllipse(in: CGRect(
+                        x: center.x - CGFloat(stitchPointSize),
+                        y: center.y - CGFloat(stitchPointSize),
+                        width: CGFloat(stitchPointSize * 2),
+                        height: CGFloat(stitchPointSize * 2)
+                    ))
+                }
+
+                // Fill with color
+                context.fill(pointPath, with: .color(color))
+
+                // Add subtle border for visibility
+                context.stroke(
+                    pointPath,
+                    with: .color(.white.opacity(0.5)),
+                    lineWidth: 0.5
+                )
+            }
+        }
+    }
+
+    private func transformPoint(_ point: StitchPoint, size: CGSize) -> CGPoint {
+        CGPoint(
+            x: point.x * zoomLevel + size.width / 2,
+            y: point.y * zoomLevel + size.height / 2
         )
     }
 }

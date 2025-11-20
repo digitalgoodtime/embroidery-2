@@ -26,6 +26,15 @@ class DocumentState: ObservableObject {
     @Published var playbackSpeed: Double = 1.0
     @Published var currentStitchIndex: Int = 0
 
+    // Stitch Visualization State
+    @Published var showStitchPoints: Bool = false
+    @Published var showThreadPath: Bool = false
+    @Published var stitchPointSize: Double = 2.0 // radius in pixels
+
+    // Text Tool State
+    @Published var showTextDialog: Bool = false
+    @Published var textDialogPosition: CGPoint = .zero
+
     init(document: EmbroideryDocument) {
         self.document = document
     }
@@ -117,5 +126,40 @@ class DocumentState: ObservableObject {
         document.layers.reduce(0) { total, layer in
             total + layer.stitches.reduce(0) { $0 + $1.points.count }
         }
+    }
+
+    // MARK: - Text Tool
+
+    func showTextInput(at position: CGPoint) {
+        textDialogPosition = position
+        showTextDialog = true
+    }
+
+    func addText(_ textObject: TextObject) {
+        // Get current layer or create one
+        let targetLayerID: UUID
+        if let selectedID = selectedLayerID {
+            targetLayerID = selectedID
+        } else if let firstLayer = document.layers.first {
+            targetLayerID = firstLayer.id
+            selectedLayerID = firstLayer.id
+        } else {
+            // Create a new layer if none exists
+            let newLayer = EmbroideryLayer(name: "Layer 1")
+            document.layers.append(newLayer)
+            targetLayerID = newLayer.id
+            selectedLayerID = newLayer.id
+        }
+
+        // Generate stitches for the text
+        let stitchGenerator = TextStitchGenerator()
+        let (stitchGroups, bounds) = stitchGenerator.generateStitches(for: textObject)
+
+        // Add stitches to the layer
+        if let layerIndex = document.layers.firstIndex(where: { $0.id == targetLayerID }) {
+            document.layers[layerIndex].stitches.append(contentsOf: stitchGroups)
+        }
+
+        isDirty = true
     }
 }

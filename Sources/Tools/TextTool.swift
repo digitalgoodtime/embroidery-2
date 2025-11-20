@@ -2,7 +2,7 @@
 //  TextTool.swift
 //  EmbroideryStudio
 //
-//  Text and monogram tool (noop implementation)
+//  Text and monogram tool for adding embroidery text
 //
 
 import SwiftUI
@@ -16,14 +16,15 @@ struct TextTool: Tool {
     let keyboardShortcut: KeyEquivalent? = "t"
 
     func activate() {
-        print("Text tool activated")
+        // Tool is now active
     }
 
     func handleMouseDown(at point: CGPoint) {
-        print("Text: Click at \(point)")
-        // TODO: Show text input dialog
-        // TODO: Font selection
-        // TODO: Monogram options
-        // TODO: Convert text to stitches
+        // Post notification to show text input dialog
+        NotificationCenter.default.post(
+            name: .showTextInputDialog,
+            object: nil,
+            userInfo: [TextToolNotificationKey.position: NSValue(point: point)]
+        )
     }
 }

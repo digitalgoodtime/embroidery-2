@@ -143,7 +143,7 @@ struct PropertiesPanelView: View {
         case "manual-digitize":
             DigitizerToolProperties()
         case "text":
-            TextToolProperties()
+            TextToolProperties(documentState: documentState)
         default:
             Text("No properties available")
                 .foregroundColor(.textSecondary)
@@ -277,33 +277,96 @@ struct DigitizerToolProperties: View {
 }
 
 struct TextToolProperties: View {
+    @ObservedObject var documentState: DocumentState
+
     var body: some View {
         VStack(alignment: .leading, spacing: .spacing2_5) {
-            VStack(alignment: .leading, spacing: .spacing1_5) {
-                Text("Font:")
-                    .font(.label)
+            // Instructions
+            HStack(alignment: .top, spacing: .spacing2) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: .iconSmall))
+                    .foregroundColor(.accentColor)
 
-                Picker("", selection: .constant("Default")) {
-                    Text("Default").tag("Default")
-                    Text("Script").tag("Script")
-                    Text("Block").tag("Block")
+                Text("Click on canvas to add text")
+                    .font(.captionSmall)
+                    .foregroundColor(.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.spacing2)
+            .background(Color.accentColor.opacity(0.1))
+            .cornerRadius(.radiusSmall)
+
+            Divider()
+
+            // Stitch Visualization
+            VStack(alignment: .leading, spacing: .spacing2) {
+                Text("Stitch Visualization")
+                    .font(.label)
+                    .foregroundColor(.textPrimary)
+
+                Toggle("Show Stitch Points", isOn: $documentState.showStitchPoints)
+                    .font(.captionSmall)
+
+                Toggle("Show Thread Path", isOn: $documentState.showThreadPath)
+                    .font(.captionSmall)
+
+                if documentState.showStitchPoints {
+                    VStack(alignment: .leading, spacing: .spacing1) {
+                        HStack {
+                            Text("Point Size:")
+                                .font(.captionSmall)
+                            Spacer()
+                            Text(String(format: "%.1f px", documentState.stitchPointSize))
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(.textSecondary)
+                        }
+
+                        Slider(value: $documentState.stitchPointSize, in: 1.0...5.0, step: 0.5)
+                            .controlSize(.small)
+                    }
                 }
-                .labelsHidden()
             }
 
+            Divider()
+
+            // Font Info
             VStack(alignment: .leading, spacing: .spacing1_5) {
+                Text("Font System")
+                    .font(.label)
+                    .foregroundColor(.textPrimary)
+
                 HStack {
-                    Text("Size:")
-                        .font(.label)
-                    Spacer()
-                    Text("12 pt")
-                        .font(.mono)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.green)
+                    Text("Easy")
+                        .font(.system(size: 10))
+                    Text("Simple fonts")
+                        .font(.system(size: 10))
                         .foregroundColor(.textSecondary)
                 }
 
-                Slider(value: .constant(12.0), in: 8...72)
-                    .controlSize(.small)
-                    .tint(.accentColor)
+                HStack {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.yellow)
+                    Text("Medium")
+                        .font(.system(size: 10))
+                    Text("Moderate detail")
+                        .font(.system(size: 10))
+                        .foregroundColor(.textSecondary)
+                }
+
+                HStack {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.orange)
+                    Text("Complex")
+                        .font(.system(size: 10))
+                    Text("Intricate details")
+                        .font(.system(size: 10))
+                        .foregroundColor(.textSecondary)
+                }
             }
         }
     }
