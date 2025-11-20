@@ -16,8 +16,8 @@ struct TopToolbar: View {
             HStack(spacing: .spacing1) {
                 Button(action: documentState.zoomOut) {
                     Image(systemName: "minus.magnifyingglass")
-                        .font(.system(size: .iconSmall + 1))
-                        .frame(width: .spacing6 + .spacing0_5, height: .spacing6 + .spacing0_5)
+                        .font(.system(size: .iconSmall))
+                        .frame(width: .controlMedium, height: .controlMedium)
                 }
                 .buttonStyle(.borderless)
                 .help("Zoom Out (⌘-)")
@@ -35,42 +35,38 @@ struct TopToolbar: View {
 
                 Button(action: documentState.zoomIn) {
                     Image(systemName: "plus.magnifyingglass")
-                        .font(.system(size: .iconSmall + 1))
-                        .frame(width: .spacing6 + .spacing0_5, height: .spacing6 + .spacing0_5)
+                        .font(.system(size: .iconSmall))
+                        .frame(width: .controlMedium, height: .controlMedium)
                 }
                 .buttonStyle(.borderless)
                 .help("Zoom In (⌘+)")
                 .accessibilityLabel("Zoom in")
 
                 Divider()
-                    .frame(height: .spacing4 + .spacing0_5)
+                    .frame(height: .spacing5)
                     .padding(.horizontal, .spacing1)
 
                 Button(action: documentState.zoomToFit) {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
                         .font(.system(size: .iconSmall))
-                        .frame(width: .spacing6 + .spacing0_5, height: .spacing6 + .spacing0_5)
+                        .frame(width: .controlMedium, height: .controlMedium)
                 }
                 .buttonStyle(.borderless)
                 .help("Zoom to Fit (⌘0)")
                 .accessibilityLabel("Zoom to fit")
             }
-            .padding(.horizontal, .spacing1_5)
-            .padding(.vertical, .spacing1)
-            .background(Color.surfaceSecondary.opacity(.opacityMediumLight))
-            .cornerRadius(.radiusSmall)
-            .padding(.leading, .spacing3)
+            .padding(.horizontal, .spacing3)
+            .padding(.leading, .spacing2)
 
-            Divider()
-                .frame(height: .spacing6)
-                .padding(.horizontal, .spacing3)
+            Spacer()
+                .frame(width: .spacing4)
 
             // View Options
-            HStack(spacing: .spacing0_5) {
+            HStack(spacing: .spacing1) {
                 Toggle(isOn: $documentState.showGrid) {
                     Image(systemName: "grid")
                         .font(.system(size: .iconMediumSmall))
-                        .frame(width: .spacing7 + .spacing0_5, height: .spacing7)
+                        .frame(width: .controlLarge, height: .controlMedium)
                 }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
@@ -81,7 +77,7 @@ struct TopToolbar: View {
                 Toggle(isOn: $documentState.showHoop) {
                     Image(systemName: "circle.dashed")
                         .font(.system(size: .iconMediumSmall))
-                        .frame(width: .spacing7 + .spacing0_5, height: .spacing7)
+                        .frame(width: .controlLarge, height: .controlMedium)
                 }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
@@ -92,7 +88,7 @@ struct TopToolbar: View {
                 Toggle(isOn: $documentState.showRulers) {
                     Image(systemName: "ruler")
                         .font(.system(size: .iconMediumSmall))
-                        .frame(width: .spacing7 + .spacing0_5, height: .spacing7)
+                        .frame(width: .controlLarge, height: .controlMedium)
                 }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
@@ -106,19 +102,15 @@ struct TopToolbar: View {
             // Document Info
             HStack(spacing: .spacing2) {
                 Image(systemName: "thread.fill")
-                    .font(.system(size: .iconTiny + 1))
+                    .font(.system(size: .iconSmall))
                     .foregroundColor(.accentHigh)
                 Text("\(documentState.totalStitchCount)")
                     .font(.monoMedium)
-                    .foregroundColor(.textPrimary.opacity(.opacitySecondary))
+                    .foregroundColor(.textPrimary)
                 Text("stitches")
-                    .font(.captionSmall)
+                    .font(.caption)
                     .foregroundColor(.textSecondary)
             }
-            .padding(.horizontal, .spacing2_5)
-            .padding(.vertical, .spacing1)
-            .background(Color.surfaceSecondary.opacity(.opacityMediumLight))
-            .cornerRadius(.radiusSmall)
             .padding(.trailing, .spacing3)
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(documentState.totalStitchCount) stitches in document")
@@ -154,10 +146,10 @@ struct StatusBar: View {
                 .frame(height: .spacing4)
 
             // Cursor position / selection info
-            HStack(spacing: .spacing1_5 - 1) {
+            HStack(spacing: .spacing1) {
                 Image(systemName: "location.fill")
                     .font(.system(size: .iconTiny))
-                    .foregroundColor(.textSecondary.opacity(.opacitySecondary))
+                    .foregroundColor(.textSecondary)
                 Text("Ready")
                     .font(.captionSmall)
                     .foregroundColor(.textSecondary)
@@ -172,15 +164,15 @@ struct StatusBar: View {
                let layer = documentState.document.layers.first(where: { $0.id == selectedID }) {
                 HStack(spacing: .spacing1_5) {
                     Image(systemName: layer.isVisible ? "eye.fill" : "eye.slash")
-                        .font(.system(size: .iconTiny + 1))
+                        .font(.system(size: .iconSmall))
                         .foregroundColor(layer.isVisible ? Color.statusVisible : Color.statusHidden)
                     Text(layer.name)
-                        .font(.roundedMedium)
-                        .foregroundColor(.textPrimary.opacity(.opacityHigh))
+                        .font(.bodyEmphasis)
+                        .foregroundColor(.textPrimary)
 
                     if layer.isLocked {
                         Image(systemName: "lock.fill")
-                            .font(.system(size: .iconTiny + 1))
+                            .font(.system(size: .iconSmall))
                             .foregroundColor(.statusLocked)
                     }
                 }
@@ -195,19 +187,10 @@ struct StatusBar: View {
         }
         .padding(.horizontal, .spacing3_5)
         .padding(.vertical, .spacing1)
-        .background(
-            LinearGradient(
-                colors: [
-                    Color.surfacePrimary.opacity(.opacityNearFull),
-                    Color.surfaceSecondary.opacity(.opacityNearFull)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
+        .background(Color.surfaceSecondary.opacity(.opacityMedium))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color.borderDefault.opacity(.opacityDisabled))
+                .fill(Color.borderSubtle)
                 .frame(height: .lineHairline)
         }
     }

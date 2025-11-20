@@ -29,9 +29,8 @@ struct PropertiesSidebar: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, .spacing3)
             .padding(.vertical, .spacing2_5)
+            .background(Color.surfaceSecondary.opacity(.opacityLight))
             .accessibilityLabel("Properties panel tabs")
-
-            Divider()
 
             // Tab Content
             ScrollView {
@@ -85,9 +84,6 @@ struct PropertiesPanelView: View {
                         .frame(width: 110)
                     }
 
-                    Divider()
-                        .padding(.vertical, .spacing0_5)
-
                     Toggle("Show Grid", isOn: $documentState.showGrid)
                         .font(.label)
                     Toggle("Show Hoop", isOn: $documentState.showHoop)
@@ -122,9 +118,6 @@ struct PropertiesPanelView: View {
                         ColorPicker("", selection: .constant(Color.red))
                             .labelsHidden()
                     }
-
-                    Divider()
-                        .padding(.vertical, .spacing0_5)
 
                     HStack {
                         Image(systemName: "sparkles")
@@ -208,10 +201,7 @@ struct CollapsibleSection<Content: View>: View {
                 .padding(.spacing3)
                 .background(Color.surfaceSecondary.opacity(.opacityMedium))
                 .cornerRadius(.radiusMedium)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.95).combined(with: .opacity),
-                    removal: .scale(scale: 0.95).combined(with: .opacity)
-                ))
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
     }
@@ -268,9 +258,6 @@ struct DigitizerToolProperties: View {
                 .labelsHidden()
             }
 
-            Divider()
-                .padding(.vertical, .spacing0_5)
-
             VStack(alignment: .leading, spacing: .spacing1_5) {
                 HStack {
                     Text("Density:")
@@ -303,9 +290,6 @@ struct TextToolProperties: View {
                 }
                 .labelsHidden()
             }
-
-            Divider()
-                .padding(.vertical, .spacing0_5)
 
             VStack(alignment: .leading, spacing: .spacing1_5) {
                 HStack {
