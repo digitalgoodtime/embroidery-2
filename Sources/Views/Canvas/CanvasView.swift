@@ -121,7 +121,7 @@ struct GridView: View {
                         path.addLine(to: CGPoint(x: size.width, y: y))
                     }
                 },
-                with: .color(.gray.opacity(0.15)),
+                with: .color(.primary.opacity(0.08)),
                 lineWidth: 0.5
             )
 
@@ -141,8 +141,8 @@ struct GridView: View {
                             path.addLine(to: CGPoint(x: size.width, y: y))
                         }
                     },
-                    with: .color(.gray.opacity(0.3)),
-                    lineWidth: 1
+                    with: .color(.primary.opacity(0.15)),
+                    lineWidth: 0.75
                 )
             }
         }
@@ -161,34 +161,44 @@ struct HoopView: View {
         let height = dimensions.height * zoomLevel
 
         ZStack {
-            // Shadow/glow
+            // Subtle outer glow
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.accentColor.opacity(0.2), lineWidth: 4)
-                .frame(width: width + 4, height: height + 4)
-                .blur(radius: 4)
+                .stroke(Color.accentColor.opacity(0.12), lineWidth: 3)
+                .frame(width: width + 6, height: height + 6)
+                .blur(radius: 3)
 
             // Main hoop outline
             RoundedRectangle(cornerRadius: 6)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+                        colors: [
+                            Color.accentColor.opacity(0.8),
+                            Color.accentColor.opacity(0.6)
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    style: StrokeStyle(lineWidth: 2, dash: [8, 4])
+                    style: StrokeStyle(lineWidth: 1.5, dash: [10, 5])
                 )
                 .frame(width: width, height: height)
 
             // Hoop size label
             VStack {
                 Spacer()
-                Text(hoopSize.rawValue)
-                    .font(.caption.monospacedDigit())
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(4)
-                    .offset(y: height / 2 + 20)
+                HStack(spacing: 4) {
+                    Image(systemName: "circle.dashed")
+                        .font(.system(size: 9))
+                        .foregroundColor(.accentColor.opacity(0.7))
+                    Text(hoopSize.rawValue)
+                        .font(.system(.caption2, design: .monospaced, weight: .medium))
+                        .foregroundColor(.primary.opacity(0.7))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.ultraThinMaterial)
+                .cornerRadius(4)
+                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+                .offset(y: height / 2 + 20)
             }
         }
     }

@@ -19,7 +19,7 @@ struct ToolPalette: View {
 
                     if !tools.isEmpty {
                         // Category tools
-                        VStack(spacing: 4) {
+                        VStack(spacing: 2) {
                             ForEach(tools, id: \.id) { tool in
                                 ToolPaletteButton(
                                     tool: tool,
@@ -32,20 +32,21 @@ struct ToolPalette: View {
                                 )
                             }
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 6)
 
                         // Category divider (except for last category)
                         if category != ToolCategory.allCases.last {
                             Divider()
-                                .padding(.horizontal, 8)
+                                .padding(.horizontal, 12)
+                                .opacity(0.5)
                         }
                     }
                 }
             }
-            .padding(.vertical, 12)
+            .padding(.vertical, 8)
         }
-        .frame(width: 48)
-        .background(.ultraThinMaterial)
+        .frame(width: 52)
+        .background(Color(nsColor: .controlBackgroundColor).opacity(0.4))
     }
 }
 
@@ -61,26 +62,33 @@ struct ToolPaletteButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: tool.icon)
-                .font(.system(size: 20))
-                .frame(width: 40, height: 40)
+                .font(.system(size: 18, weight: .regular))
+                .imageScale(.medium)
+                .frame(width: 44, height: 38)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 5)
                         .fill(backgroundColor)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .strokeBorder(borderColor, lineWidth: borderWidth)
                 )
                 .foregroundColor(foregroundColor)
         }
         .buttonStyle(.borderless)
         .help(tooltipText)
         .onHover { hovering in
-            isHovering = hovering
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isHovering = hovering
+            }
         }
     }
 
     private var backgroundColor: Color {
         if isSelected {
-            return Color.accentColor.opacity(0.8)
+            return Color.accentColor
         } else if isHovering {
-            return Color.secondary.opacity(0.15)
+            return Color.secondary.opacity(0.12)
         } else {
             return Color.clear
         }
@@ -88,6 +96,18 @@ struct ToolPaletteButton: View {
 
     private var foregroundColor: Color {
         isSelected ? .white : .primary
+    }
+
+    private var borderColor: Color {
+        if isSelected {
+            return Color.accentColor.opacity(0.3)
+        } else {
+            return Color.clear
+        }
+    }
+
+    private var borderWidth: CGFloat {
+        isSelected ? 1.5 : 0
     }
 
     private var tooltipText: String {

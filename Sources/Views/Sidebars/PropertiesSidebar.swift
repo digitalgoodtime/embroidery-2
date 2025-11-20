@@ -27,7 +27,8 @@ struct PropertiesSidebar: View {
                 }
             }
             .pickerStyle(.segmented)
-            .padding()
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
 
             Divider()
 
@@ -51,66 +52,104 @@ struct PropertiesPanelView: View {
     @StateObject private var toolManager = ToolManager.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             // Tool-specific properties
             if let tool = toolManager.selectedTool {
-                GroupBox(label: Text(tool.name).font(.headline)) {
-                    toolPropertiesView(for: tool)
-                        .padding(8)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(tool.name)
+                        .font(.system(.subheadline, weight: .semibold))
+                        .foregroundColor(.primary)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        toolPropertiesView(for: tool)
+                    }
+                    .padding(12)
+                    .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
+                    .cornerRadius(6)
                 }
             }
 
             // Canvas Properties
-            GroupBox(label: Text("Canvas").font(.headline)) {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Canvas")
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundColor(.primary)
+
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("Hoop Size:")
+                            .font(.system(.caption, weight: .medium))
                         Spacer()
                         Picker("", selection: $documentState.document.canvas.hoopSize) {
                             ForEach(EmbroideryCanvas.HoopSize.allCases, id: \.self) { size in
                                 Text(size.rawValue).tag(size)
                             }
                         }
-                        .frame(width: 120)
+                        .labelsHidden()
+                        .frame(width: 110)
                     }
 
+                    Divider()
+                        .padding(.vertical, 2)
+
                     Toggle("Show Grid", isOn: $documentState.showGrid)
+                        .font(.system(.caption, weight: .medium))
                     Toggle("Show Hoop", isOn: $documentState.showHoop)
+                        .font(.system(.caption, weight: .medium))
                     Toggle("Show Rulers", isOn: $documentState.showRulers)
+                        .font(.system(.caption, weight: .medium))
                     Toggle("Snap to Grid", isOn: $documentState.snapToGrid)
+                        .font(.system(.caption, weight: .medium))
                 }
-                .padding(8)
+                .padding(12)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
+                .cornerRadius(6)
             }
 
             // Stitch Properties
-            GroupBox(label: Text("Stitch Settings").font(.headline)) {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Stitch Settings")
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundColor(.primary)
+
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("Density:")
+                            .font(.system(.caption, weight: .medium))
                         Spacer()
                         Text("4.0 st/mm")
+                            .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("Thread Color:")
+                            .font(.system(.caption, weight: .medium))
                         Spacer()
                         ColorPicker("", selection: .constant(Color.red))
                             .labelsHidden()
                     }
 
                     Divider()
+                        .padding(.vertical, 2)
 
-                    Text("Fabric Assist: Auto")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    HStack {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 10))
+                            .foregroundColor(.accentColor)
+                        Text("Fabric Assist: Auto")
+                            .font(.system(.caption2))
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .padding(8)
+                .padding(12)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
+                .cornerRadius(6)
             }
 
             Spacer()
         }
-        .padding()
+        .padding(12)
     }
 
     @ViewBuilder
@@ -134,33 +173,31 @@ struct PropertiesPanelView: View {
 
 struct SelectionToolProperties: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Transform")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
-
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Position:")
+                    .font(.system(.caption, weight: .medium))
                 Spacer()
                 Text("X: 0  Y: 0")
-                    .font(.caption.monospacedDigit())
+                    .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.secondary)
             }
 
             HStack {
                 Text("Size:")
+                    .font(.system(.caption, weight: .medium))
                 Spacer()
                 Text("W: 0  H: 0")
-                    .font(.caption.monospacedDigit())
+                    .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.secondary)
             }
 
             HStack {
                 Text("Rotation:")
+                    .font(.system(.caption, weight: .medium))
                 Spacer()
                 Text("0°")
-                    .font(.caption.monospacedDigit())
+                    .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.secondary)
             }
         }
@@ -169,24 +206,36 @@ struct SelectionToolProperties: View {
 
 struct DigitizerToolProperties: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Digitize Mode")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Stitch Type:")
+                    .font(.system(.caption, weight: .medium))
 
-            Picker("Stitch Type:", selection: .constant(StitchType.running)) {
-                Text("Running").tag(StitchType.running)
-                Text("Satin").tag(StitchType.satin)
-                Text("Fill").tag(StitchType.fill)
+                Picker("", selection: .constant(StitchType.running)) {
+                    Text("Running").tag(StitchType.running)
+                    Text("Satin").tag(StitchType.satin)
+                    Text("Fill").tag(StitchType.fill)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
             }
 
-            HStack {
-                Text("Density:")
+            Divider()
+                .padding(.vertical, 2)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Density:")
+                        .font(.system(.caption, weight: .medium))
+                    Spacer()
+                    Text("4.0 st/mm")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+
                 Slider(value: .constant(4.0), in: 1...10)
-                Text("4.0")
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 40, alignment: .trailing)
+                    .controlSize(.small)
+                    .tint(.accentColor)
             }
         }
     }
@@ -194,24 +243,35 @@ struct DigitizerToolProperties: View {
 
 struct TextToolProperties: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Font Settings")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Font:")
+                    .font(.system(.caption, weight: .medium))
 
-            Picker("Font:", selection: .constant("Default")) {
-                Text("Default").tag("Default")
-                Text("Script").tag("Script")
-                Text("Block").tag("Block")
+                Picker("", selection: .constant("Default")) {
+                    Text("Default").tag("Default")
+                    Text("Script").tag("Script")
+                    Text("Block").tag("Block")
+                }
+                .labelsHidden()
             }
 
-            HStack {
-                Text("Size:")
+            Divider()
+                .padding(.vertical, 2)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Size:")
+                        .font(.system(.caption, weight: .medium))
+                    Spacer()
+                    Text("12 pt")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+
                 Slider(value: .constant(12.0), in: 8...72)
-                Text("12")
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 30, alignment: .trailing)
+                    .controlSize(.small)
+                    .tint(.accentColor)
             }
         }
     }
@@ -223,21 +283,31 @@ struct StitchPlayerPanelView: View {
     @ObservedObject var documentState: DocumentState
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
             // Preview area
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.secondary.opacity(0.1))
+                .fill(
+                    LinearGradient(
+                        colors: [Color.secondary.opacity(0.08), Color.secondary.opacity(0.12)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .frame(height: 200)
                 .overlay {
-                    VStack {
+                    VStack(spacing: 12) {
                         Image(systemName: "figure.wave.circle")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 52))
+                            .foregroundColor(.secondary.opacity(0.5))
                         Text("Stitch Preview")
-                            .font(.caption)
+                            .font(.system(.caption, weight: .medium))
                             .foregroundColor(.secondary)
                     }
                 }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
+                )
 
             // Playback controls
             VStack(spacing: 12) {
@@ -301,35 +371,46 @@ struct StitchPlayerPanelView: View {
             }
 
             // Statistics
-            GroupBox(label: Text("Statistics").font(.headline)) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Statistics")
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundColor(.primary)
+
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("Total Stitches:")
+                            .font(.system(.caption, weight: .medium))
                         Spacer()
                         Text("\(documentState.totalStitchCount)")
+                            .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("Colors:")
+                            .font(.system(.caption, weight: .medium))
                         Spacer()
                         Text("\(documentState.document.metadata.colorCount)")
+                            .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("Est. Time:")
+                            .font(.system(.caption, weight: .medium))
                         Spacer()
                         Text("-- min")
+                            .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
                 }
-                .font(.caption)
-                .padding(8)
+                .padding(12)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
+                .cornerRadius(6)
             }
 
             Spacer()
         }
-        .padding()
+        .padding(12)
     }
 }

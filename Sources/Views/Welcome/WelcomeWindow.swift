@@ -13,26 +13,45 @@ struct WelcomeWindow: View {
     var body: some View {
         HStack(spacing: 0) {
             // Left side - Hero
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
+                Spacer()
+
                 Image(systemName: "square.3.layers.3d.down.right")
-                    .font(.system(size: 80))
+                    .font(.system(size: 90))
+                    .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.accentColor, .accentColor.opacity(0.6)],
+                            colors: [.accentColor, .accentColor.opacity(0.7)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
+                    .shadow(color: .accentColor.opacity(0.2), radius: 20, x: 0, y: 10)
 
-                Text("Embroidery Studio")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                VStack(spacing: 8) {
+                    Text("Embroidery Studio")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
 
-                Text("Professional embroidery design for Mac")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
+                    Text("Professional embroidery design for Mac")
+                        .font(.system(.title3))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(nsColor: .controlBackgroundColor).opacity(0.6),
+                        Color(nsColor: .controlBackgroundColor).opacity(0.4)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
 
             // Right side - Actions
             VStack(alignment: .leading, spacing: 24) {
@@ -134,42 +153,52 @@ struct WelcomeButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
-                    .frame(width: 40)
+                    .font(.system(size: 22))
+                    .foregroundColor(.accentColor.opacity(isHovering ? 1.0 : 0.8))
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(Color.accentColor.opacity(isHovering ? 0.15 : 0.1))
+                    )
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.headline)
+                        .font(.system(.body, weight: .semibold))
                         .foregroundColor(.primary)
 
                     Text(subtitle)
-                        .font(.caption)
+                        .font(.system(.caption))
                         .foregroundColor(.secondary)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .opacity(isHovering ? 1 : 0)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.secondary.opacity(0.6))
+                    .opacity(isHovering ? 1 : 0.5)
             }
-            .padding(12)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
+                    .fill(isHovering ? Color.accentColor.opacity(0.08) : Color(nsColor: .controlBackgroundColor).opacity(0.3))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                    .strokeBorder(
+                        isHovering ? Color.accentColor.opacity(0.3) : Color(nsColor: .separatorColor).opacity(0.5),
+                        lineWidth: 1
+                    )
             )
         }
         .buttonStyle(.plain)
         .onHover { hovering in
-            isHovering = hovering
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovering = hovering
+            }
         }
     }
 }
