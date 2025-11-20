@@ -31,6 +31,11 @@ struct DocumentView: View {
                     LayersSidebar(documentState: documentState)
                         .frame(width: leftSidebarWidth)
                         .background(.ultraThinMaterial)
+
+                    ResizableDivider { delta in
+                        let newWidth = leftSidebarWidth + delta
+                        leftSidebarWidth = max(200, min(400, newWidth))
+                    }
                 }
 
                 // Center - Canvas
@@ -50,6 +55,11 @@ struct DocumentView: View {
 
                 // Right Sidebar - Tools Panel
                 if showRightSidebar {
+                    ResizableDivider { delta in
+                        let newWidth = rightSidebarWidth - delta
+                        rightSidebarWidth = max(200, min(400, newWidth))
+                    }
+
                     ToolsSidebar(documentState: documentState)
                         .frame(width: rightSidebarWidth)
                         .background(.ultraThinMaterial)
@@ -58,17 +68,25 @@ struct DocumentView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                Button(action: { showLeftSidebar.toggle() }) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showLeftSidebar.toggle()
+                    }
+                }) {
                     Image(systemName: "sidebar.left")
                 }
-                .help("Toggle Layers")
+                .help("Toggle Layers Panel (⌘⌥1)")
             }
 
             ToolbarItem(placement: .automatic) {
-                Button(action: { showRightSidebar.toggle() }) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showRightSidebar.toggle()
+                    }
+                }) {
                     Image(systemName: "sidebar.right")
                 }
-                .help("Toggle Tools")
+                .help("Toggle Tools Panel (⌘⌥2)")
             }
         }
         .onChange(of: documentState.document) { newValue in
