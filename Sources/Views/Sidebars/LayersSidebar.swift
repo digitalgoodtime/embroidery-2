@@ -101,7 +101,7 @@ struct LayersSidebar: View {
                         .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
                     }
                     .onMove { from, to in
-                        var layers = documentState.document.layers.reversed()
+                        var layers = Array(documentState.document.layers.reversed())
                         layers.move(fromOffsets: from, toOffset: to)
                         documentState.document.layers = Array(layers.reversed())
                     }
