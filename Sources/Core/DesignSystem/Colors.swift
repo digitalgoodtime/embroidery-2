@@ -119,6 +119,12 @@ extension Color {
     /// Accent color with high opacity
     static let accentHigh = Color.accentColor.opacity(.opacityHigh)
 
+    /// Accent color with muted opacity
+    static let accentMuted = Color.accentColor.opacity(.opacityMuted)
+
+    /// Accent color with light-medium opacity
+    static let accentLightMedium = Color.accentColor.opacity(.opacityLightMedium)
+
     // MARK: - Overlay Colors (Liquid Glass)
 
     /// Very subtle overlay for hover states

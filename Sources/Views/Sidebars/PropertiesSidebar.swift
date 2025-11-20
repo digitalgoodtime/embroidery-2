@@ -2,7 +2,7 @@
 //  PropertiesSidebar.swift
 //  EmbroideryStudio
 //
-//  Contextual properties panel (right side)
+//  Contextual properties panel (right side) with liquid glass and collapsible sections
 //
 
 import SwiftUI
@@ -27,8 +27,9 @@ struct PropertiesSidebar: View {
                 }
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, .spacing3)
+            .padding(.vertical, .spacing2_5)
+            .accessibilityLabel("Properties panel tabs")
 
             Divider()
 
@@ -52,33 +53,28 @@ struct PropertiesPanelView: View {
     @StateObject private var toolManager = ToolManager.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: .spacing3_5) {
             // Tool-specific properties
             if let tool = toolManager.selectedTool {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(tool.name)
-                        .font(.system(.subheadline, weight: .semibold))
-                        .foregroundColor(.primary)
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        toolPropertiesView(for: tool)
-                    }
-                    .padding(12)
-                    .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
-                    .cornerRadius(6)
+                CollapsibleSection(
+                    title: tool.name,
+                    icon: tool.icon,
+                    isExpanded: true
+                ) {
+                    toolPropertiesView(for: tool)
                 }
             }
 
             // Canvas Properties
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Canvas")
-                    .font(.system(.subheadline, weight: .semibold))
-                    .foregroundColor(.primary)
-
-                VStack(alignment: .leading, spacing: 10) {
+            CollapsibleSection(
+                title: "Canvas",
+                icon: "square.on.square.dashed",
+                isExpanded: true
+            ) {
+                VStack(alignment: .leading, spacing: .spacing2_5) {
                     HStack {
                         Text("Hoop Size:")
-                            .font(.system(.caption, weight: .medium))
+                            .font(.label)
                         Spacer()
                         Picker("", selection: $documentState.document.canvas.hoopSize) {
                             ForEach(EmbroideryCanvas.HoopSize.allCases, id: \.self) { size in
@@ -90,66 +86,60 @@ struct PropertiesPanelView: View {
                     }
 
                     Divider()
-                        .padding(.vertical, 2)
+                        .padding(.vertical, .spacing0_5)
 
                     Toggle("Show Grid", isOn: $documentState.showGrid)
-                        .font(.system(.caption, weight: .medium))
+                        .font(.label)
                     Toggle("Show Hoop", isOn: $documentState.showHoop)
-                        .font(.system(.caption, weight: .medium))
+                        .font(.label)
                     Toggle("Show Rulers", isOn: $documentState.showRulers)
-                        .font(.system(.caption, weight: .medium))
+                        .font(.label)
                     Toggle("Snap to Grid", isOn: $documentState.snapToGrid)
-                        .font(.system(.caption, weight: .medium))
+                        .font(.label)
                 }
-                .padding(12)
-                .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
-                .cornerRadius(6)
             }
 
             // Stitch Properties
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Stitch Settings")
-                    .font(.system(.subheadline, weight: .semibold))
-                    .foregroundColor(.primary)
-
-                VStack(alignment: .leading, spacing: 10) {
+            CollapsibleSection(
+                title: "Stitch Settings",
+                icon: "thread.fill",
+                isExpanded: true
+            ) {
+                VStack(alignment: .leading, spacing: .spacing2_5) {
                     HStack {
                         Text("Density:")
-                            .font(.system(.caption, weight: .medium))
+                            .font(.label)
                         Spacer()
                         Text("4.0 st/mm")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .font(.mono)
+                            .foregroundColor(.textSecondary)
                     }
 
                     HStack {
                         Text("Thread Color:")
-                            .font(.system(.caption, weight: .medium))
+                            .font(.label)
                         Spacer()
                         ColorPicker("", selection: .constant(Color.red))
                             .labelsHidden()
                     }
 
                     Divider()
-                        .padding(.vertical, 2)
+                        .padding(.vertical, .spacing0_5)
 
                     HStack {
                         Image(systemName: "sparkles")
-                            .font(.system(size: 10))
+                            .font(.system(size: .iconTiny))
                             .foregroundColor(.accentColor)
                         Text("Fabric Assist: Auto")
-                            .font(.system(.caption2))
-                            .foregroundColor(.secondary)
+                            .font(.captionSmall)
+                            .foregroundColor(.textSecondary)
                     }
                 }
-                .padding(12)
-                .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
-                .cornerRadius(6)
             }
 
             Spacer()
         }
-        .padding(12)
+        .padding(.spacing3)
     }
 
     @ViewBuilder
@@ -163,8 +153,66 @@ struct PropertiesPanelView: View {
             TextToolProperties()
         default:
             Text("No properties available")
-                .foregroundColor(.secondary)
+                .foregroundColor(.textSecondary)
                 .font(.caption)
+        }
+    }
+}
+
+// MARK: - Collapsible Section Component
+
+struct CollapsibleSection<Content: View>: View {
+    let title: String
+    let icon: String
+    @State var isExpanded: Bool
+    let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: .spacing2) {
+            // Header
+            Button(action: {
+                withAnimation(.springQuick) {
+                    isExpanded.toggle()
+                }
+            }) {
+                HStack(spacing: .spacing2) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: .iconTiny, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .frame(width: .spacing3, height: .spacing3)
+                        .animation(.springQuick, value: isExpanded)
+
+                    Image(systemName: icon)
+                        .font(.system(size: .iconSmall))
+                        .foregroundColor(.accentColor)
+
+                    Text(title)
+                        .font(.headingSmall)
+                        .foregroundColor(.textPrimary)
+
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(title) section")
+            .accessibilityHint(isExpanded ? "Expanded, double tap to collapse" : "Collapsed, double tap to expand")
+            .accessibilityAddTraits(.isButton)
+
+            // Content
+            if isExpanded {
+                VStack(alignment: .leading, spacing: .spacing2_5) {
+                    content()
+                }
+                .padding(.spacing3)
+                .background(Color.surfaceSecondary.opacity(.opacityMedium))
+                .cornerRadius(.radiusMedium)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.95).combined(with: .opacity),
+                    removal: .scale(scale: 0.95).combined(with: .opacity)
+                ))
+            }
         }
     }
 }
@@ -173,32 +221,32 @@ struct PropertiesPanelView: View {
 
 struct SelectionToolProperties: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: .spacing2_5) {
             HStack {
                 Text("Position:")
-                    .font(.system(.caption, weight: .medium))
+                    .font(.label)
                 Spacer()
                 Text("X: 0  Y: 0")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .font(.mono)
+                    .foregroundColor(.textSecondary)
             }
 
             HStack {
                 Text("Size:")
-                    .font(.system(.caption, weight: .medium))
+                    .font(.label)
                 Spacer()
                 Text("W: 0  H: 0")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .font(.mono)
+                    .foregroundColor(.textSecondary)
             }
 
             HStack {
                 Text("Rotation:")
-                    .font(.system(.caption, weight: .medium))
+                    .font(.label)
                 Spacer()
                 Text("0°")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .font(.mono)
+                    .foregroundColor(.textSecondary)
             }
         }
     }
@@ -206,10 +254,10 @@ struct SelectionToolProperties: View {
 
 struct DigitizerToolProperties: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .spacing2_5) {
+            VStack(alignment: .leading, spacing: .spacing1_5) {
                 Text("Stitch Type:")
-                    .font(.system(.caption, weight: .medium))
+                    .font(.label)
 
                 Picker("", selection: .constant(StitchType.running)) {
                     Text("Running").tag(StitchType.running)
@@ -221,16 +269,16 @@ struct DigitizerToolProperties: View {
             }
 
             Divider()
-                .padding(.vertical, 2)
+                .padding(.vertical, .spacing0_5)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .spacing1_5) {
                 HStack {
                     Text("Density:")
-                        .font(.system(.caption, weight: .medium))
+                        .font(.label)
                     Spacer()
                     Text("4.0 st/mm")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .font(.mono)
+                        .foregroundColor(.textSecondary)
                 }
 
                 Slider(value: .constant(4.0), in: 1...10)
@@ -243,10 +291,10 @@ struct DigitizerToolProperties: View {
 
 struct TextToolProperties: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .spacing2_5) {
+            VStack(alignment: .leading, spacing: .spacing1_5) {
                 Text("Font:")
-                    .font(.system(.caption, weight: .medium))
+                    .font(.label)
 
                 Picker("", selection: .constant("Default")) {
                     Text("Default").tag("Default")
@@ -257,16 +305,16 @@ struct TextToolProperties: View {
             }
 
             Divider()
-                .padding(.vertical, 2)
+                .padding(.vertical, .spacing0_5)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .spacing1_5) {
                 HStack {
                     Text("Size:")
-                        .font(.system(.caption, weight: .medium))
+                        .font(.label)
                     Spacer()
                     Text("12 pt")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .font(.mono)
+                        .foregroundColor(.textSecondary)
                 }
 
                 Slider(value: .constant(12.0), in: 8...72)
@@ -283,36 +331,49 @@ struct StitchPlayerPanelView: View {
     @ObservedObject var documentState: DocumentState
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: .spacing3_5) {
             // Preview area
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: .radiusMedium)
                 .fill(
                     LinearGradient(
-                        colors: [Color.secondary.opacity(0.08), Color.secondary.opacity(0.12)],
+                        colors: [Color.secondary.opacity(.opacitySubtle), Color.secondary.opacity(.opacityLightMedium)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
                 .frame(height: 200)
                 .overlay {
-                    VStack(spacing: 12) {
-                        Image(systemName: "figure.wave.circle")
-                            .font(.system(size: 52))
-                            .foregroundColor(.secondary.opacity(0.5))
+                    if documentState.totalStitchCount == 0 {
+                        VStack(spacing: .spacing3) {
+                            Image(systemName: "figure.wave.circle")
+                                .font(.system(size: .iconHero))
+                                .foregroundColor(.accentMedium)
+                                .symbolRenderingMode(.hierarchical)
+                            VStack(spacing: .spacing1) {
+                                Text("No Stitches Yet")
+                                    .font(.bodyEmphasis)
+                                    .foregroundColor(.textPrimary.opacity(.opacitySecondary))
+                                Text("Create a design to preview stitches")
+                                    .font(.caption)
+                                    .foregroundColor(.textSecondary)
+                            }
+                        }
+                    } else {
                         Text("Stitch Preview")
-                            .font(.system(.caption, weight: .medium))
-                            .foregroundColor(.secondary)
+                            .font(.label)
+                            .foregroundColor(.textSecondary)
                     }
                 }
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: .radiusMedium)
+                        .strokeBorder(Color.borderSubtle, lineWidth: .lineStandard)
                 )
+                .shadowLight()
 
             // Playback controls
-            VStack(spacing: 12) {
+            VStack(spacing: .spacing3) {
                 // Progress bar
-                VStack(spacing: 4) {
+                VStack(spacing: .spacing1) {
                     Slider(
                         value: Binding(
                             get: { Double(documentState.currentStitchIndex) },
@@ -320,23 +381,27 @@ struct StitchPlayerPanelView: View {
                         ),
                         in: 0...Double(max(1, documentState.totalStitchCount - 1))
                     )
+                    .tint(.accentColor)
 
                     HStack {
                         Text("Stitch \(documentState.currentStitchIndex + 1)")
-                            .font(.caption2)
+                            .font(.captionSmall)
                         Spacer()
                         Text("\(documentState.totalStitchCount) total")
-                            .font(.caption2)
+                            .font(.captionSmall)
                     }
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.textSecondary)
                 }
 
                 // Buttons
-                HStack(spacing: 12) {
+                HStack(spacing: .spacing3) {
                     Button(action: documentState.stepBackward) {
                         Image(systemName: "backward.frame.fill")
+                            .font(.system(size: .iconMedium))
                     }
+                    .buttonStyle(.borderless)
                     .disabled(documentState.currentStitchIndex == 0)
+                    .opacity(documentState.currentStitchIndex == 0 ? .opacityDisabled : 1)
 
                     Button(action: {
                         if documentState.isPlaying {
@@ -346,71 +411,80 @@ struct StitchPlayerPanelView: View {
                         }
                     }) {
                         Image(systemName: documentState.isPlaying ? "pause.fill" : "play.fill")
-                            .frame(width: 30, height: 30)
+                            .font(.system(size: .iconMediumLarge))
+                            .frame(width: .spacing7 + .spacing0_5, height: .spacing7 + .spacing0_5)
                     }
                     .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
 
                     Button(action: documentState.stepForward) {
                         Image(systemName: "forward.frame.fill")
+                            .font(.system(size: .iconMedium))
                     }
+                    .buttonStyle(.borderless)
                     .disabled(documentState.currentStitchIndex >= documentState.totalStitchCount - 1)
+                    .opacity(documentState.currentStitchIndex >= documentState.totalStitchCount - 1 ? .opacityDisabled : 1)
 
                     Button(action: documentState.stopStitches) {
                         Image(systemName: "stop.fill")
+                            .font(.system(size: .iconMedium))
                     }
+                    .buttonStyle(.borderless)
                 }
 
                 // Speed control
-                HStack {
+                HStack(spacing: .spacing2) {
                     Text("Speed:")
+                        .font(.label)
                     Slider(value: $documentState.playbackSpeed, in: 0.1...5.0)
+                        .tint(.accentColor)
                     Text("\(String(format: "%.1f", documentState.playbackSpeed))x")
-                        .frame(width: 40, alignment: .trailing)
-                        .font(.caption)
+                        .font(.mono)
+                        .frame(width: .spacing10, alignment: .trailing)
                 }
             }
+            .padding(.spacing3)
+            .background(Color.surfaceSecondary.opacity(.opacityLight))
+            .cornerRadius(.radiusMedium)
 
             // Statistics
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Statistics")
-                    .font(.system(.subheadline, weight: .semibold))
-                    .foregroundColor(.primary)
-
-                VStack(alignment: .leading, spacing: 10) {
+            CollapsibleSection(
+                title: "Statistics",
+                icon: "chart.bar.fill",
+                isExpanded: true
+            ) {
+                VStack(alignment: .leading, spacing: .spacing2_5) {
                     HStack {
                         Text("Total Stitches:")
-                            .font(.system(.caption, weight: .medium))
+                            .font(.label)
                         Spacer()
                         Text("\(documentState.totalStitchCount)")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .font(.mono)
+                            .foregroundColor(.textSecondary)
                     }
 
                     HStack {
                         Text("Colors:")
-                            .font(.system(.caption, weight: .medium))
+                            .font(.label)
                         Spacer()
                         Text("\(documentState.document.metadata.colorCount)")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .font(.mono)
+                            .foregroundColor(.textSecondary)
                     }
 
                     HStack {
                         Text("Est. Time:")
-                            .font(.system(.caption, weight: .medium))
+                            .font(.label)
                         Spacer()
                         Text("-- min")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .font(.mono)
+                            .foregroundColor(.textSecondary)
                     }
                 }
-                .padding(12)
-                .background(Color(nsColor: .controlBackgroundColor).opacity(0.3))
-                .cornerRadius(6)
             }
 
             Spacer()
         }
-        .padding(12)
+        .padding(.spacing3)
     }
 }

@@ -2,7 +2,7 @@
 //  SettingsView.swift
 //  EmbroideryStudio
 //
-//  Application settings window
+//  Application settings window with liquid glass polish
 //
 
 import SwiftUI
@@ -56,7 +56,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .padding()
+        .padding(.spacing3)
     }
 }
 
@@ -70,18 +70,23 @@ struct GeneralSettingsView: View {
                 Text("Light").tag("Light")
                 Text("Dark").tag("Dark")
             }
+            .font(.label)
 
             Toggle("Show welcome screen on launch", isOn: .constant(true))
+                .font(.label)
         }
 
         Section("Autosave") {
             Toggle("Enable autosave", isOn: .constant(true))
+                .font(.label)
+
             Picker("Autosave interval:", selection: .constant(5)) {
                 Text("1 minute").tag(1)
                 Text("5 minutes").tag(5)
                 Text("10 minutes").tag(10)
                 Text("30 minutes").tag(30)
             }
+            .font(.label)
         }
     }
 }
@@ -96,10 +101,14 @@ struct CanvasSettingsView: View {
                     Text(size.rawValue).tag(size)
                 }
             }
+            .font(.label)
 
             Toggle("Show grid by default", isOn: .constant(true))
+                .font(.label)
             Toggle("Show hoop by default", isOn: .constant(true))
+                .font(.label)
             Toggle("Show rulers by default", isOn: .constant(true))
+                .font(.label)
         }
 
         Section("Grid") {
@@ -108,8 +117,10 @@ struct CanvasSettingsView: View {
                 Text("10mm").tag(10.0)
                 Text("20mm").tag(20.0)
             }
+            .font(.label)
 
             Toggle("Snap to grid", isOn: .constant(false))
+                .font(.label)
         }
     }
 }
@@ -119,25 +130,45 @@ struct CanvasSettingsView: View {
 struct StitchSettingsView: View {
     var body: some View {
         Section("Default Stitch Properties") {
-            HStack {
-                Text("Density:")
+            VStack(alignment: .leading, spacing: .spacing2) {
+                HStack {
+                    Text("Density:")
+                        .font(.label)
+                    Spacer()
+                    Text("4.0 st/mm")
+                        .font(.mono)
+                        .foregroundColor(.textSecondary)
+                        .frame(width: .spacing20, alignment: .trailing)
+                }
+
                 Slider(value: .constant(4.0), in: 1.0...10.0)
-                Text("4.0 st/mm")
-                    .frame(width: 80, alignment: .trailing)
+                    .controlSize(.small)
+                    .tint(.accentColor)
             }
 
             Toggle("Enable Fabric Assist", isOn: .constant(true))
+                .font(.label)
         }
 
         Section("Stitch Player") {
-            HStack {
-                Text("Default speed:")
+            VStack(alignment: .leading, spacing: .spacing2) {
+                HStack {
+                    Text("Default speed:")
+                        .font(.label)
+                    Spacer()
+                    Text("1.0x")
+                        .font(.mono)
+                        .foregroundColor(.textSecondary)
+                        .frame(width: .spacing12 + .spacing3, alignment: .trailing)
+                }
+
                 Slider(value: .constant(1.0), in: 0.1...5.0)
-                Text("1.0x")
-                    .frame(width: 60, alignment: .trailing)
+                    .controlSize(.small)
+                    .tint(.accentColor)
             }
 
             Toggle("Auto-play on open", isOn: .constant(false))
+                .font(.label)
         }
     }
 }
@@ -152,12 +183,16 @@ struct ExportSettingsView: View {
                 Text("DST").tag("DST")
                 Text("JEF").tag("JEF")
             }
+            .font(.label)
         }
 
         Section("Export Options") {
             Toggle("Include color information", isOn: .constant(true))
+                .font(.label)
             Toggle("Optimize stitch order", isOn: .constant(true))
+                .font(.label)
             Toggle("Trim jump stitches", isOn: .constant(true))
+                .font(.label)
         }
     }
 }

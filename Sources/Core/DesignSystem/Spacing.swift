@@ -52,4 +52,7 @@ extension CGFloat {
 
     /// 48px - Maximum spacing for hero sections
     static let spacing12 = CGFloat(48)
+
+    /// 80px - Extra wide spacing for special layouts
+    static let spacing20 = CGFloat(80)
 }
