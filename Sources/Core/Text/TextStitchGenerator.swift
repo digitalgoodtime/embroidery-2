@@ -37,14 +37,15 @@ class TextStitchGenerator {
         // Generate stitches based on technique
         let technique = textObject.stitchTechnique
 
+        // TEMPORARY: Only generate outline to verify paths are correct
         // Generate fill stitches first (if needed) so they appear under outline
-        if technique.needsFill {
-            let fillStitches = fillGenerator.generateFillStitches(for: textObject)
-            allStitchGroups.append(contentsOf: fillStitches)
-        }
+        // if technique.needsFill {
+        //     let fillStitches = fillGenerator.generateFillStitches(for: textObject)
+        //     allStitchGroups.append(contentsOf: fillStitches)
+        // }
 
         // Generate outline stitches (if needed)
-        if technique.needsOutline {
+        if technique.needsOutline || technique.needsFill {  // Always generate outline for now
             let outlineStitches = outlineGenerator.generateOutlineStitches(for: textObject)
             allStitchGroups.append(contentsOf: outlineStitches)
         }
