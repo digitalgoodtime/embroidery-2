@@ -146,84 +146,86 @@ class TextFillStitchGenerator {
     }
 
     /// Generate fill stitches for a single character path
-    /// Uses scanline algorithm to fill path interior with parallel lines
+    /// Uses scanline algorithm - generates lines perpendicular to fill angle
     private func generateFillForPath(
         path: CGPath,
         bounds: CGRect,
         density: Double,
         angle: Double
     ) -> [StitchPoint] {
-        // Calculate line spacing based on density
-        // For satin fill, lines should be closer together
+        // Line spacing based on density
         let lineSpacing = 1.0 / (density * 1.5) // mm between fill lines
 
-        // Expand bounds slightly to ensure complete coverage
+        // Expand bounds to ensure coverage
         let expandedBounds = bounds.insetBy(dx: -5, dy: -5)
 
-        // Use rotation-based approach for clarity and correctness
-        // Strategy: rotate coordinate system so fill lines become horizontal,
-        // generate horizontal scanlines, then rotate results back
-
-        // Negate angle because Y-axis is flipped (Y increases downward)
+        // Convert angle to radians
+        // Negate because Y-axis is flipped (Y increases downward in canvas coordinates)
         let fillAngleRad = -angle * .pi / 180.0
 
-        // Create rotation transform (rotate by -fillAngle to make fill lines horizontal)
-        var rotateToHorizontal = CGAffineTransform(rotationAngle: -fillAngleRad)
-        let rotateBack = CGAffineTransform(rotationAngle: fillAngleRad)
+        // Scanlines are perpendicular to fill direction
+        let scanlineAngleRad = fillAngleRad + .pi / 2
 
-        // Rotate the path and bounds to align fill direction with horizontal
-        let rotatedPath = path.copy(using: &rotateToHorizontal)!
-        let rotatedBounds = expandedBounds.applying(rotateToHorizontal)
+        // Calculate how far we need to step perpendicular to cover the bounds
+        // Use diagonal length to ensure complete coverage
+        let diagonal = sqrt(
+            expandedBounds.width * expandedBounds.width +
+            expandedBounds.height * expandedBounds.height
+        )
 
-        // Generate horizontal scanlines in rotated space
-        let minY = rotatedBounds.minY
-        let maxY = rotatedBounds.maxY
-        let scanlineWidth = rotatedBounds.width * 2 // Make sure scanlines are long enough
+        // Calculate number of scanlines needed
+        let numScanlines = Int(ceil(Double(diagonal) / lineSpacing))
+
+        // Center point to generate scanlines around
+        let centerX = expandedBounds.midX
+        let centerY = expandedBounds.midY
 
         var scanlineSegments: [[CGPoint]] = []
-        var y = minY
-        var scanlineIndex = 0
 
-        while y <= maxY {
-            // Create horizontal scanline at this Y
-            let scanlineStart = CGPoint(x: rotatedBounds.midX - scanlineWidth, y: y)
-            let scanlineEnd = CGPoint(x: rotatedBounds.midX + scanlineWidth, y: y)
+        // Generate each scanline
+        for i in 0..<numScanlines {
+            // Calculate offset from center (perpendicular to fill direction)
+            let offset = (Double(i) - Double(numScanlines) / 2.0) * lineSpacing
 
-            // Find intersections with the rotated path
-            let intersections = findLinePathIntersections(
+            // Position along perpendicular direction
+            let scanlineOriginX = centerX + CGFloat(cos(scanlineAngleRad) * offset)
+            let scanlineOriginY = centerY + CGFloat(sin(scanlineAngleRad) * offset)
+
+            // Extend scanline in fill direction (long enough to cross entire bounds)
+            let halfLength = diagonal
+            let startX = scanlineOriginX - CGFloat(cos(fillAngleRad) * halfLength)
+            let startY = scanlineOriginY - CGFloat(sin(fillAngleRad) * halfLength)
+            let endX = scanlineOriginX + CGFloat(cos(fillAngleRad) * halfLength)
+            let endY = scanlineOriginY + CGFloat(sin(fillAngleRad) * halfLength)
+
+            let scanlineStart = CGPoint(x: startX, y: startY)
+            let scanlineEnd = CGPoint(x: endX, y: endY)
+
+            // Find where this scanline intersects the path
+            let intersections = findIntersections(
                 lineStart: scanlineStart,
                 lineEnd: scanlineEnd,
-                path: rotatedPath
+                path: path
             )
 
-            // Pair up intersections (entry/exit)
+            // Pair up intersections (entry/exit) and create segments
             if intersections.count >= 2 {
-                // Sort by X coordinate
-                let sortedIntersections = intersections.sorted { $0.x < $1.x }
-
                 // Process pairs
-                for j in stride(from: 0, to: sortedIntersections.count - 1, by: 2) {
-                    var entry = sortedIntersections[j]
-                    var exit = sortedIntersections[j + 1]
+                for j in stride(from: 0, to: intersections.count - 1, by: 2) {
+                    let entry = intersections[j]
+                    let exit = intersections[j + 1]
 
-                    // Rotate points back to original coordinate system
-                    entry = entry.applying(rotateBack)
-                    exit = exit.applying(rotateBack)
-
-                    // For satin stitch zigzag: reverse direction on alternate scanlines
-                    if scanlineIndex % 2 == 0 {
+                    // Zigzag pattern: reverse direction on alternate scanlines
+                    if i % 2 == 0 {
                         scanlineSegments.append([entry, exit])
                     } else {
                         scanlineSegments.append([exit, entry])
                     }
                 }
             }
-
-            y += lineSpacing
-            scanlineIndex += 1
         }
 
-        // Connect segments into continuous stitch path
+        // Convert to stitch points
         var stitchPoints: [StitchPoint] = []
         for segment in scanlineSegments {
             for point in segment {
@@ -234,95 +236,37 @@ class TextFillStitchGenerator {
         return stitchPoints
     }
 
-    /// Find intersections between a line segment and a path
-    /// Uses sampling with binary search refinement for precise boundary detection
-    private func findLinePathIntersections(
+    /// Find intersections between a line and a path by sampling
+    /// Returns sorted intersection points along the line
+    private func findIntersections(
         lineStart: CGPoint,
         lineEnd: CGPoint,
         path: CGPath
     ) -> [CGPoint] {
         var intersections: [CGPoint] = []
 
-        // Sample the line at fine intervals
-        let samples = 400 // Increased for better precision
+        // Sample along the line
+        let numSamples = 500
         var wasInside = false
-        var prevT: CGFloat = 0
 
-        for i in 0...samples {
-            let t = CGFloat(i) / CGFloat(samples)
+        for i in 0...numSamples {
+            let t = CGFloat(i) / CGFloat(numSamples)
             let point = CGPoint(
                 x: lineStart.x + (lineEnd.x - lineStart.x) * t,
                 y: lineStart.y + (lineEnd.y - lineStart.y) * t
             )
 
-            // Use evenOdd rule because path has been Y-flipped, which reverses winding
+            // Use evenOdd fill rule (path is Y-flipped)
             let isInside = path.contains(point, using: .evenOdd)
 
-            // Detect transitions (entry/exit)
+            // Detect transition (crossing boundary)
             if i > 0 && isInside != wasInside {
-                // Binary search to refine the intersection point
-                let refinedPoint = refineIntersection(
-                    lineStart: lineStart,
-                    lineEnd: lineEnd,
-                    path: path,
-                    t1: prevT,
-                    t2: t,
-                    wasInside: wasInside
-                )
-                intersections.append(refinedPoint)
+                intersections.append(point)
             }
 
             wasInside = isInside
-            prevT = t
         }
 
         return intersections
-    }
-
-    /// Refine intersection point using binary search
-    private func refineIntersection(
-        lineStart: CGPoint,
-        lineEnd: CGPoint,
-        path: CGPath,
-        t1: CGFloat,
-        t2: CGFloat,
-        wasInside: Bool
-    ) -> CGPoint {
-        var tMin = t1
-        var tMax = t2
-
-        // Binary search for precise intersection (10 iterations gives ~0.1% precision)
-        for _ in 0..<10 {
-            let tMid = (tMin + tMax) / 2
-            let midPoint = CGPoint(
-                x: lineStart.x + (lineEnd.x - lineStart.x) * tMid,
-                y: lineStart.y + (lineEnd.y - lineStart.y) * tMid
-            )
-
-            // Use evenOdd rule because path has been Y-flipped, which reverses winding
-            let isInside = path.contains(midPoint, using: .evenOdd)
-
-            if isInside == wasInside {
-                tMin = tMid
-            } else {
-                tMax = tMid
-            }
-        }
-
-        // Use the point just inside the boundary
-        // If wasInside: we're exiting, so use tMin (last inside point)
-        // If !wasInside: we're entering, so use tMax (first inside point)
-        let finalT = wasInside ? tMin : tMax
-        return CGPoint(
-            x: lineStart.x + (lineEnd.x - lineStart.x) * finalT,
-            y: lineStart.y + (lineEnd.y - lineStart.y) * finalT
-        )
-    }
-
-    /// Calculate distance between two points
-    private func distance(_ p1: CGPoint, _ p2: CGPoint) -> CGFloat {
-        let dx = p2.x - p1.x
-        let dy = p2.y - p1.y
-        return sqrt(dx * dx + dy * dy)
     }
 }
