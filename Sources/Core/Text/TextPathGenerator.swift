@@ -62,6 +62,9 @@ class TextPathGenerator {
             break
         }
 
+        // Capture Y position (will be shadowed by local variable in loop)
+        let baseY = position.y
+
         var glyphPaths: [PathResult.GlyphPath] = []
         var overallBounds: CGRect = .zero
 
@@ -98,8 +101,14 @@ class TextPathGenerator {
                     // Create mutable copy to apply transform
                     let mutablePath = CGMutablePath()
 
-                    // Apply translation to position glyph
-                    let transform = CGAffineTransform(translationX: currentX + position.x, y: position.y)
+                    // CoreText uses bottom-left origin (Y increases upward)
+                    // Canvas uses top-left origin (Y increases downward)
+                    // Need to flip Y-axis and apply translation
+                    var transform = CGAffineTransform(scaleX: 1, y: -1)
+                    transform = transform.translatedBy(
+                        x: currentX + position.x,
+                        y: -(baseY + position.y)
+                    )
                     mutablePath.addPath(glyphPath, transform: transform)
 
                     // Get bounds for this glyph
