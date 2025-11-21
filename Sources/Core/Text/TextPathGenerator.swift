@@ -155,14 +155,15 @@ class TextPathGenerator {
         return Double(points / 2.83465)
     }
 
-    /// Sample points along a path at regular intervals
+    /// Sample points along a path at regular intervals, splitting by subpath
     /// Used for converting paths to stitch points
     /// - Parameters:
     ///   - path: The CGPath to sample
     ///   - density: Stitch density in stitches per mm
-    /// - Returns: Array of sampled points
-    func samplePath(_ path: CGPath, density: Double) -> [CGPoint] {
-        var points: [CGPoint] = []
+    /// - Returns: Array of subpath point arrays
+    func samplePathBySubpath(_ path: CGPath, density: Double) -> [[CGPoint]] {
+        var allSubpaths: [[CGPoint]] = []
+        var currentSubpath: [CGPoint] = []
 
         // Calculate sampling interval based on density
         // Higher density = smaller interval
@@ -177,8 +178,14 @@ class TextPathGenerator {
 
             switch elementType {
             case .moveToPoint:
+                // Save previous subpath if it exists
+                if !currentSubpath.isEmpty {
+                    allSubpaths.append(currentSubpath)
+                    currentSubpath = []
+                }
+
                 let point = elementPoints[0]
-                points.append(point)
+                currentSubpath.append(point)
                 previousPoint = point
                 subpathStart = point  // Mark start of new subpath
 
@@ -198,7 +205,7 @@ class TextPathGenerator {
                             x: previous.x + dx * t,
                             y: previous.y + dy * t
                         )
-                        points.append(interpolated)
+                        currentSubpath.append(interpolated)
                     }
                 }
                 previousPoint = point
@@ -214,7 +221,7 @@ class TextPathGenerator {
                         end: end,
                         interval: interval
                     )
-                    points.append(contentsOf: curvePoints)
+                    currentSubpath.append(contentsOf: curvePoints)
                 }
                 previousPoint = end
 
@@ -231,7 +238,7 @@ class TextPathGenerator {
                         end: end,
                         interval: interval
                     )
-                    points.append(contentsOf: curvePoints)
+                    currentSubpath.append(contentsOf: curvePoints)
                 }
                 previousPoint = end
 
@@ -251,7 +258,7 @@ class TextPathGenerator {
                             x: last.x + dx * t,
                             y: last.y + dy * t
                         )
-                        points.append(interpolated)
+                        currentSubpath.append(interpolated)
                     }
                 }
 
@@ -260,7 +267,12 @@ class TextPathGenerator {
             }
         }
 
-        return points
+        // Add final subpath
+        if !currentSubpath.isEmpty {
+            allSubpaths.append(currentSubpath)
+        }
+
+        return allSubpaths
     }
 
     /// Sample points along a quadratic bezier curve

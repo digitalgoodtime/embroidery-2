@@ -39,15 +39,8 @@ class TextOutlineStitchGenerator {
 
         // Process each glyph path
         for glyphPath in pathResult.glyphPaths {
-            // Sample points along the path
-            let sampledPoints = pathGenerator.samplePath(glyphPath.path, density: density)
-
-            // Skip if no points
-            guard !sampledPoints.isEmpty else { continue }
-
-            // Split into separate groups at moveToPoint (new subpaths)
-            // This prevents drawing lines between outer boundary and holes
-            let subpathGroups = splitIntoSubpaths(sampledPoints)
+            // Sample points along the path, split by subpath
+            let subpathGroups = pathGenerator.samplePathBySubpath(glyphPath.path, density: density)
 
             for subpathPoints in subpathGroups {
                 guard !subpathPoints.isEmpty else { continue }
@@ -71,44 +64,6 @@ class TextOutlineStitchGenerator {
         }
 
         return stitchGroups
-    }
-
-    /// Split sampled points into separate arrays for each subpath
-    /// Detects large gaps that indicate moveToPoint operations
-    private func splitIntoSubpaths(_ points: [CGPoint]) -> [[CGPoint]] {
-        guard !points.isEmpty else { return [] }
-
-        var subpaths: [[CGPoint]] = []
-        var currentSubpath: [CGPoint] = []
-        let maxGapDistance: CGFloat = 10.0  // mm - threshold for detecting subpath boundary
-
-        for i in 0..<points.count {
-            let point = points[i]
-
-            if i > 0 {
-                let prevPoint = points[i - 1]
-                let dx = point.x - prevPoint.x
-                let dy = point.y - prevPoint.y
-                let distance = sqrt(dx * dx + dy * dy)
-
-                // Large gap indicates a moveToPoint (new subpath)
-                if distance > maxGapDistance {
-                    if !currentSubpath.isEmpty {
-                        subpaths.append(currentSubpath)
-                        currentSubpath = []
-                    }
-                }
-            }
-
-            currentSubpath.append(point)
-        }
-
-        // Add final subpath
-        if !currentSubpath.isEmpty {
-            subpaths.append(currentSubpath)
-        }
-
-        return subpaths
     }
 
     /// Generate outline stitches from a TextObject
