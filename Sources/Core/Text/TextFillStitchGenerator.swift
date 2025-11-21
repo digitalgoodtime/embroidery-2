@@ -69,7 +69,8 @@ class TextFillStitchGenerator {
         guard !allEdges.isEmpty else { return [] }
 
         // Line spacing based on density
-        let lineSpacing = 1.0 / (density * 1.5)
+        // TEMP: Use wider spacing to make fill visible for testing
+        let lineSpacing = 1.0 // 1.0 / (density * 1.5)
 
         var allStitchPoints: [StitchPoint] = []
 
