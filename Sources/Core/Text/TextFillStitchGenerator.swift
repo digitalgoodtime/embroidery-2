@@ -159,16 +159,13 @@ class TextFillStitchGenerator {
 
         // Convert angle to radians
         // Negate angle because Y-axis is flipped (Y increases downward)
-        let angleRad = -angle * .pi / 180.0
-
-        // Calculate the perpendicular direction for scanlines
-        let perpAngle = angleRad + .pi / 2
+        let fillAngleRad = -angle * .pi / 180.0  // Direction of fill lines (the stitches themselves)
+        let stepAngleRad = fillAngleRad + .pi / 2 // Direction to step for parallel lines
 
         // Determine scanning bounds
-        // We need to scan the bounding box rotated by the fill angle
         let expandedBounds = bounds.insetBy(dx: -10, dy: -10)
 
-        // Calculate scanline extents
+        // Calculate scanline length (needs to be long enough to cross entire bounds)
         let scanLength = Double(sqrt(
             expandedBounds.width * expandedBounds.width +
             expandedBounds.height * expandedBounds.height
@@ -177,24 +174,25 @@ class TextFillStitchGenerator {
         // Calculate number of scanlines needed
         let numLines = Int(ceil(scanLength / lineSpacing))
 
-        // Collect all scanline segments first
+        // Collect all scanline segments
         var scanlineSegments: [[CGPoint]] = []
 
-        // Generate scanlines
+        // Generate scanlines AT the fill angle, stepped perpendicular
         for i in 0..<numLines {
             let offset = Double(i) * lineSpacing - scanLength / 2
 
-            // Calculate scanline start and end points
+            // Calculate scanline position (step perpendicular from center)
             let centerX = expandedBounds.midX
             let centerY = expandedBounds.midY
 
-            // Start point (one end of the scanline)
-            let startX = centerX + CGFloat(cos(perpAngle) * offset - sin(perpAngle) * scanLength / 2)
-            let startY = centerY + CGFloat(sin(perpAngle) * offset + cos(perpAngle) * scanLength / 2)
+            let stepX = centerX + CGFloat(cos(stepAngleRad) * offset)
+            let stepY = centerY + CGFloat(sin(stepAngleRad) * offset)
 
-            // End point (other end of the scanline)
-            let endX = centerX + CGFloat(cos(perpAngle) * offset + sin(perpAngle) * scanLength / 2)
-            let endY = centerY + CGFloat(sin(perpAngle) * offset - cos(perpAngle) * scanLength / 2)
+            // Create scanline at fill angle through this point
+            let startX = stepX - CGFloat(cos(fillAngleRad) * scanLength / 2)
+            let startY = stepY - CGFloat(sin(fillAngleRad) * scanLength / 2)
+            let endX = stepX + CGFloat(cos(fillAngleRad) * scanLength / 2)
+            let endY = stepY + CGFloat(sin(fillAngleRad) * scanLength / 2)
 
             let startPoint = CGPoint(x: startX, y: startY)
             let endPoint = CGPoint(x: endX, y: endY)
