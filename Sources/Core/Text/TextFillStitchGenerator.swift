@@ -184,8 +184,8 @@ class TextFillStitchGenerator {
             )
 
             // Check if point is inside the path
-            // Use evenOdd rule (path is Y-flipped)
-            let isInside = path.contains(point, using: .evenOdd)
+            // Try winding rule instead of evenOdd
+            let isInside = path.contains(point, using: .winding)
 
             // Detect boundary crossing
             if i > 0 && isInside != wasInside {
