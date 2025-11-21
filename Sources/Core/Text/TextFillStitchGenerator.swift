@@ -88,10 +88,11 @@ class TextFillStitchGenerator {
                 let y2 = p2.y
 
                 // Check if edge crosses this Y
+                // Use half-open interval to avoid counting vertices twice
                 let minY = min(y1, y2)
                 let maxY = max(y1, y2)
 
-                if y >= minY && y <= maxY && abs(y2 - y1) > 0.0001 {
+                if y >= minY && y < maxY {
                     // Calculate X at intersection
                     let t = (y - y1) / (y2 - y1)
                     let x = p1.x + t * (p2.x - p1.x)
