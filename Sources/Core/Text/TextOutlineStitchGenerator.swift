@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import AppKit
 
 /// Generates outline stitches for text by tracing character paths
 class TextOutlineStitchGenerator {
@@ -16,7 +17,7 @@ class TextOutlineStitchGenerator {
     ///   - letterSpacing: Additional letter spacing
     ///   - alignment: Text alignment
     /// - Returns: Array of StitchGroups representing the outline
-    func generateOutlineStitches(
+    private func generateOutlineStitches(
         text: String,
         font: NSFont,
         position: CGPoint,

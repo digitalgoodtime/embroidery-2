@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import AppKit
 
 /// Generates fill stitches for text characters using satin stitch technique
 class TextFillStitchGenerator {
@@ -19,7 +20,7 @@ class TextFillStitchGenerator {
     ///   - letterSpacing: Additional letter spacing
     ///   - alignment: Text alignment
     /// - Returns: Array of StitchGroups representing the fill
-    func generateFillStitches(
+    private func generateFillStitches(
         text: String,
         font: NSFont,
         position: CGPoint,
@@ -117,10 +118,10 @@ class TextFillStitchGenerator {
         let expandedBounds = bounds.insetBy(dx: -10, dy: -10)
 
         // Calculate scanline extents
-        let scanLength = sqrt(
+        let scanLength = Double(sqrt(
             expandedBounds.width * expandedBounds.width +
             expandedBounds.height * expandedBounds.height
-        )
+        ))
 
         // Calculate number of scanlines needed
         let numLines = Int(ceil(scanLength / lineSpacing))
