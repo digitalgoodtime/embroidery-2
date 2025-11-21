@@ -114,7 +114,7 @@ struct CanvasView: View {
         }
 
         // Default to black
-        return CodableColor(nsColor: .black)
+        return CodableColor(.black)
     }
 
     private func handleCanvasTap(at location: CGPoint, in geometry: GeometryProxy) {

@@ -225,7 +225,7 @@ struct TextInputDialog: View {
 
                         ColorPicker("", selection: Binding(
                             get: { Color(outlineColor.nsColor) },
-                            set: { outlineColor = CodableColor(nsColor: NSColor($0)) }
+                            set: { outlineColor = CodableColor(NSColor($0)) }
                         ))
                         .labelsHidden()
                     }
@@ -238,7 +238,7 @@ struct TextInputDialog: View {
 
                         ColorPicker("", selection: Binding(
                             get: { Color(fillColor.nsColor) },
-                            set: { fillColor = CodableColor(nsColor: NSColor($0)) }
+                            set: { fillColor = CodableColor(NSColor($0)) }
                         ))
                         .labelsHidden()
                     }
