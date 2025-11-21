@@ -199,7 +199,8 @@ class TextFillStitchGenerator {
                 y: lineStart.y + (lineEnd.y - lineStart.y) * t
             )
 
-            let isInside = path.contains(point, using: .winding)
+            // Use evenOdd rule because path has been Y-flipped, which reverses winding
+            let isInside = path.contains(point, using: .evenOdd)
 
             // Detect transitions (entry/exit)
             if i > 0 && isInside != wasInside {
@@ -243,7 +244,8 @@ class TextFillStitchGenerator {
                 y: lineStart.y + (lineEnd.y - lineStart.y) * tMid
             )
 
-            let isInside = path.contains(midPoint, using: .winding)
+            // Use evenOdd rule because path has been Y-flipped, which reverses winding
+            let isInside = path.contains(midPoint, using: .evenOdd)
 
             if isInside == wasInside {
                 tMin = tMid
