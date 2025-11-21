@@ -64,6 +64,7 @@ class TextPathGenerator {
 
         // Capture Y position (will be shadowed by local variable in loop)
         let baseY = position.y
+        print("DEBUG TextPathGenerator: User clicked at position.y = \(position.y), baseY = \(baseY)")
 
         var glyphPaths: [PathResult.GlyphPath] = []
         var overallBounds: CGRect = .zero
@@ -104,10 +105,11 @@ class TextPathGenerator {
                     // CoreText uses bottom-left origin (Y increases upward)
                     // Canvas uses top-left origin (Y increases downward)
                     // Need to flip Y-axis and apply translation
+                    // After scaleY: -1, translatedBy operates in flipped space, so negate Y
                     var transform = CGAffineTransform(scaleX: 1, y: -1)
                     transform = transform.translatedBy(
                         x: currentX + position.x,
-                        y: baseY
+                        y: -baseY
                     )
                     mutablePath.addPath(glyphPath, transform: transform)
 
