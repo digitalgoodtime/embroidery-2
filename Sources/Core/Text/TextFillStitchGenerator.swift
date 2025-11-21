@@ -215,20 +215,16 @@ class TextFillStitchGenerator {
                 }
 
                 // Collect entry/exit pairs for this scanline
-                // For proper satin stitches, reverse alternate lines
-                if i % 2 == 0 {
-                    // Even scanline: left to right
-                    for j in stride(from: 0, to: sortedIntersections.count - 1, by: 2) {
-                        let entry = sortedIntersections[j]
-                        let exit = sortedIntersections[j + 1]
+                // Pair up intersections (entry/exit) for each segment
+                for j in stride(from: 0, to: sortedIntersections.count - 1, by: 2) {
+                    let entry = sortedIntersections[j]
+                    let exit = sortedIntersections[j + 1]
+
+                    // For satin stitch zigzag: reverse direction on alternate scanlines
+                    if i % 2 == 0 {
                         scanlineSegments.append([entry, exit])
-                    }
-                } else {
-                    // Odd scanline: right to left (reversed pairs)
-                    for j in stride(from: sortedIntersections.count - 2, through: 0, by: -2) {
-                        let entry = sortedIntersections[j + 1]  // Reversed
-                        let exit = sortedIntersections[j]       // Reversed
-                        scanlineSegments.append([entry, exit])
+                    } else {
+                        scanlineSegments.append([exit, entry])
                     }
                 }
             }
