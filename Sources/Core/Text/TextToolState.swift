@@ -47,6 +47,32 @@ class TextToolState: ObservableObject {
         )
     }
 
+    /// Load state from an existing text object (for editing)
+    func loadFrom(_ textObject: TextObject) {
+        text = textObject.text
+        fontSize = textObject.fontSize
+        letterSpacing = textObject.letterSpacing
+        alignment = textObject.alignment
+        stitchTechnique = textObject.stitchTechnique
+        densityMode = textObject.densityMode
+        manualDensity = textObject.manualDensity
+        outlineColor = textObject.outlineColor
+        fillColor = textObject.fillColor ?? CodableColor(.black)
+
+        // Update selected font if different
+        if let font = fontManager.font(named: textObject.fontName) {
+            selectedFont = font
+        }
+    }
+
+    /// Create updated TextObject preserving ID and position
+    func updateTextObject(_ original: TextObject) -> TextObject {
+        var updated = createTextObject(at: original.position)
+        updated.id = original.id
+        updated.bounds = original.bounds
+        return updated
+    }
+
     /// Validate current text settings
     func validate() -> [TextStitchGenerator.ValidationIssue] {
         let textObject = createTextObject(at: .zero)

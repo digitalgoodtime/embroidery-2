@@ -31,9 +31,13 @@ class DocumentState: ObservableObject {
     @Published var showThreadPath: Bool = false
     @Published var stitchPointSize: Double = 2.0 // radius in pixels
 
-    // Text Tool State
-    @Published var showTextDialog: Bool = false
-    @Published var textDialogPosition: CGPoint = .zero
+    // Text Objects
+    @Published var textObjects: [TextObject] = []
+    @Published var selectedTextID: UUID?
+
+    var selectedText: TextObject? {
+        textObjects.first { $0.id == selectedTextID }
+    }
 
     init(document: EmbroideryDocument) {
         self.document = document
@@ -130,12 +134,70 @@ class DocumentState: ObservableObject {
 
     // MARK: - Text Tool
 
-    func showTextInput(at position: CGPoint) {
-        textDialogPosition = position
-        showTextDialog = true
+    func addText(_ textObject: TextObject) {
+        var mutableTextObject = textObject
+
+        // Generate stitches and get bounds
+        let stitchGenerator = TextStitchGenerator()
+        let (_, bounds) = stitchGenerator.generateStitches(for: mutableTextObject)
+        mutableTextObject.updateBounds(bounds)
+
+        // Store the text object with updated bounds
+        textObjects.append(mutableTextObject)
+
+        // Select the new text
+        selectedTextID = mutableTextObject.id
+
+        // Regenerate stitches for the layer
+        regenerateStitches()
+
+        isDirty = true
     }
 
-    func addText(_ textObject: TextObject) {
+    func updateText(_ textObject: TextObject) {
+        if let index = textObjects.firstIndex(where: { $0.id == textObject.id }) {
+            var mutableTextObject = textObject
+
+            // Generate stitches and get bounds
+            let stitchGenerator = TextStitchGenerator()
+            let (_, bounds) = stitchGenerator.generateStitches(for: mutableTextObject)
+            mutableTextObject.updateBounds(bounds)
+
+            textObjects[index] = mutableTextObject
+
+            // Regenerate stitches for the layer
+            regenerateStitches()
+
+            isDirty = true
+        }
+    }
+
+    func deleteSelectedText() {
+        if let selectedID = selectedTextID {
+            textObjects.removeAll { $0.id == selectedID }
+            selectedTextID = nil
+
+            // Regenerate stitches for the layer
+            regenerateStitches()
+
+            isDirty = true
+        }
+    }
+
+    func selectText(at point: CGPoint, tolerance: Double = 10.0) -> Bool {
+        // Check text objects in reverse order (top to bottom)
+        for textObject in textObjects.reversed() {
+            if textObject.contains(point: point, tolerance: tolerance) {
+                selectedTextID = textObject.id
+                return true
+            }
+        }
+
+        selectedTextID = nil
+        return false
+    }
+
+    private func regenerateStitches() {
         // Get current layer or create one
         let targetLayerID: UUID
         if let selectedID = selectedLayerID {
@@ -151,15 +213,18 @@ class DocumentState: ObservableObject {
             selectedLayerID = newLayer.id
         }
 
-        // Generate stitches for the text
-        let stitchGenerator = TextStitchGenerator()
-        let (stitchGroups, _) = stitchGenerator.generateStitches(for: textObject)
-
-        // Add stitches to the layer
-        if let layerIndex = document.layers.firstIndex(where: { $0.id == targetLayerID }) {
-            document.layers[layerIndex].stitches.append(contentsOf: stitchGroups)
+        guard let layerIndex = document.layers.firstIndex(where: { $0.id == targetLayerID }) else {
+            return
         }
 
-        isDirty = true
+        // Clear existing stitches
+        document.layers[layerIndex].stitches.removeAll()
+
+        // Regenerate stitches for all text objects
+        let stitchGenerator = TextStitchGenerator()
+        for textObject in textObjects {
+            let (stitchGroups, _) = stitchGenerator.generateStitches(for: textObject)
+            document.layers[layerIndex].stitches.append(contentsOf: stitchGroups)
+        }
     }
 }

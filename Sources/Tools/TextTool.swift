@@ -22,6 +22,20 @@ struct TextTool: Tool {
     }
 
     func handleMouseDown(at point: CGPoint) {
+        // Try to select existing text first
+        // Post notification to attempt selection
+        NotificationCenter.default.post(
+            name: .selectTextAtPoint,
+            object: nil,
+            userInfo: [TextToolNotificationKey.point: point]
+        )
+
+        // Note: If selection fails, the CanvasView will post back .createNewText
+        // which we handle in the notification listener
+    }
+
+    /// Handle request to create new text (after selection attempt failed)
+    func createNewText(at point: CGPoint) {
         // Create text object from current properties
         let textObject = textState.createTextObject(at: point)
 

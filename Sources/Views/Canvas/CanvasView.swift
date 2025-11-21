@@ -91,6 +91,29 @@ struct CanvasView: View {
                 documentState.addText(textObject)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .selectTextAtPoint)) { notification in
+            if let point = notification.userInfo?[TextToolNotificationKey.point] as? CGPoint {
+                let didSelect = documentState.selectText(at: point)
+
+                if didSelect {
+                    // Text was selected, notify to update properties panel
+                    if let selectedText = documentState.selectedText {
+                        NotificationCenter.default.post(
+                            name: .textSelectionChanged,
+                            object: nil,
+                            userInfo: [TextToolNotificationKey.textObject: selectedText]
+                        )
+                    }
+                } else {
+                    // No text at that point, create new text
+                    NotificationCenter.default.post(
+                        name: .createNewText,
+                        object: nil,
+                        userInfo: [TextToolNotificationKey.point: point]
+                        )
+                }
+            }
+        }
     }
 
     private func handleCanvasTap(at location: CGPoint, in geometry: GeometryProxy) {

@@ -530,12 +530,50 @@ struct TextToolProperties: View {
                 }
             }
         }
-        .onChange(of: textState.text) { _ in validateText() }
-        .onChange(of: textState.fontSize) { _ in validateText() }
-        .onChange(of: textState.densityMode) { _ in validateText() }
-        .onChange(of: textState.manualDensity) { _ in validateText() }
+        .onChange(of: textState.text) { _ in
+            validateText()
+            updateSelectedText()
+        }
+        .onChange(of: textState.fontSize) { _ in
+            validateText()
+            updateSelectedText()
+        }
+        .onChange(of: textState.selectedFont) { _ in updateSelectedText() }
+        .onChange(of: textState.stitchTechnique) { _ in updateSelectedText() }
+        .onChange(of: textState.densityMode) { _ in
+            validateText()
+            updateSelectedText()
+        }
+        .onChange(of: textState.manualDensity) { _ in
+            validateText()
+            updateSelectedText()
+        }
+        .onChange(of: textState.letterSpacing) { _ in updateSelectedText() }
+        .onChange(of: textState.alignment) { _ in updateSelectedText() }
+        .onChange(of: textState.outlineColor) { _ in updateSelectedText() }
+        .onChange(of: textState.fillColor) { _ in updateSelectedText() }
+        .onReceive(NotificationCenter.default.publisher(for: .textSelectionChanged)) { notification in
+            if let textObject = notification.userInfo?[TextToolNotificationKey.textObject] as? TextObject {
+                textState.loadFrom(textObject)
+                validateText()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .createNewText)) { notification in
+            if let point = notification.userInfo?[TextToolNotificationKey.point] as? CGPoint {
+                let textObject = textState.createTextObject(at: point)
+                documentState.addText(textObject)
+            }
+        }
         .onAppear {
             validateText()
+        }
+    }
+
+    /// Update the selected text object when properties change
+    private func updateSelectedText() {
+        if let selectedText = documentState.selectedText {
+            let updatedText = textState.updateTextObject(selectedText)
+            documentState.updateText(updatedText)
         }
     }
 

@@ -62,6 +62,18 @@ struct TextObject: Identifiable, Codable {
             return manualDensity
         }
     }
+
+    /// Check if a point is within this text object's bounds
+    func contains(point: CGPoint, tolerance: Double = 10.0) -> Bool {
+        // Expand bounds by tolerance for easier selection
+        let expandedBounds = bounds.insetBy(dx: -tolerance, dy: -tolerance)
+        return expandedBounds.contains(point)
+    }
+
+    /// Update bounds after path generation
+    mutating func updateBounds(_ newBounds: CGRect) {
+        bounds = newBounds
+    }
 }
 
 /// Embroidery stitch technique for text rendering
