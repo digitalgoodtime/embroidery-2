@@ -45,24 +45,70 @@ class TextOutlineStitchGenerator {
             // Skip if no points
             guard !sampledPoints.isEmpty else { continue }
 
-            // Convert CGPoints to StitchPoints
-            let stitchPoints = sampledPoints.map { point in
-                StitchPoint(x: Double(point.x), y: Double(point.y))
+            // Split into separate groups at moveToPoint (new subpaths)
+            // This prevents drawing lines between outer boundary and holes
+            let subpathGroups = splitIntoSubpaths(sampledPoints)
+
+            for subpathPoints in subpathGroups {
+                guard !subpathPoints.isEmpty else { continue }
+
+                // Convert CGPoints to StitchPoints
+                let stitchPoints = subpathPoints.map { point in
+                    StitchPoint(x: Double(point.x), y: Double(point.y))
+                }
+
+                // Create a stitch group for this subpath
+                let stitchGroup = StitchGroup(
+                    id: UUID(),
+                    type: .running,
+                    points: stitchPoints,
+                    color: color,
+                    density: density
+                )
+
+                stitchGroups.append(stitchGroup)
             }
-
-            // Create a stitch group for this character outline
-            let stitchGroup = StitchGroup(
-                id: UUID(),
-                type: .running,
-                points: stitchPoints,
-                color: color,
-                density: density
-            )
-
-            stitchGroups.append(stitchGroup)
         }
 
         return stitchGroups
+    }
+
+    /// Split sampled points into separate arrays for each subpath
+    /// Detects large gaps that indicate moveToPoint operations
+    private func splitIntoSubpaths(_ points: [CGPoint]) -> [[CGPoint]] {
+        guard !points.isEmpty else { return [] }
+
+        var subpaths: [[CGPoint]] = []
+        var currentSubpath: [CGPoint] = []
+        let maxGapDistance: CGFloat = 10.0  // mm - threshold for detecting subpath boundary
+
+        for i in 0..<points.count {
+            let point = points[i]
+
+            if i > 0 {
+                let prevPoint = points[i - 1]
+                let dx = point.x - prevPoint.x
+                let dy = point.y - prevPoint.y
+                let distance = sqrt(dx * dx + dy * dy)
+
+                // Large gap indicates a moveToPoint (new subpath)
+                if distance > maxGapDistance {
+                    if !currentSubpath.isEmpty {
+                        subpaths.append(currentSubpath)
+                        currentSubpath = []
+                    }
+                }
+            }
+
+            currentSubpath.append(point)
+        }
+
+        // Add final subpath
+        if !currentSubpath.isEmpty {
+            subpaths.append(currentSubpath)
+        }
+
+        return subpaths
     }
 
     /// Generate outline stitches from a TextObject
