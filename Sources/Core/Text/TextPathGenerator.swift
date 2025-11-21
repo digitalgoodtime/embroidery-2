@@ -107,7 +107,7 @@ class TextPathGenerator {
                     var transform = CGAffineTransform(scaleX: 1, y: -1)
                     transform = transform.translatedBy(
                         x: currentX + position.x,
-                        y: -(baseY + position.y)
+                        y: -baseY
                     )
                     mutablePath.addPath(glyphPath, transform: transform)
 
