@@ -7,9 +7,6 @@ class TextFillStitchGenerator {
 
     private let pathGenerator = TextPathGenerator()
 
-    /// Fill angle in degrees (45° is typical for text)
-    private let fillAngle: Double = 45.0
-
     /// Generate fill stitches from a TextObject
     /// - Parameter textObject: The text object to generate stitches for
     /// - Returns: Array of StitchGroups
@@ -61,8 +58,10 @@ class TextFillStitchGenerator {
         // Line spacing based on density
         let lineSpacing = 1.0 / (density * 1.5) // mm between fill lines
 
-        // Start with simple horizontal scanlines to verify the approach works
-        // TODO: Add angle support once horizontal works
+        // First, extract all edges from the path
+        let edges = extractEdges(from: path)
+
+        guard !edges.isEmpty else { return [] }
 
         var allStitchPoints: [StitchPoint] = []
 
@@ -74,31 +73,31 @@ class TextFillStitchGenerator {
         var scanlineIndex = 0
 
         while y <= expandedBounds.maxY {
-            // Create horizontal line across the entire width
-            let lineStart = CGPoint(x: expandedBounds.minX - 10, y: y)
-            let lineEnd = CGPoint(x: expandedBounds.maxX + 10, y: y)
+            // Find all intersections with edges at this Y coordinate
+            var xIntersections: [CGFloat] = []
 
-            // Find all intersections with the path
-            let intersections = findPathIntersections(
-                lineStart: lineStart,
-                lineEnd: lineEnd,
-                path: path
-            )
+            for edge in edges {
+                if let x = findHorizontalIntersection(edge: edge, atY: y) {
+                    xIntersections.append(x)
+                }
+            }
 
-            // Create stitch segments from intersection pairs
-            // Pairs represent entry/exit points
-            if intersections.count >= 2 {
-                for i in stride(from: 0, to: intersections.count - 1, by: 2) {
-                    let entry = intersections[i]
-                    let exit = intersections[i + 1]
+            // Sort intersections by X coordinate
+            xIntersections.sort()
+
+            // Create stitch segments from pairs (entry/exit)
+            if xIntersections.count >= 2 {
+                for i in stride(from: 0, to: xIntersections.count - 1, by: 2) {
+                    let x1 = xIntersections[i]
+                    let x2 = xIntersections[i + 1]
 
                     // Zigzag: reverse every other line
                     if scanlineIndex % 2 == 0 {
-                        allStitchPoints.append(StitchPoint(x: Double(entry.x), y: Double(entry.y)))
-                        allStitchPoints.append(StitchPoint(x: Double(exit.x), y: Double(exit.y)))
+                        allStitchPoints.append(StitchPoint(x: Double(x1), y: Double(y)))
+                        allStitchPoints.append(StitchPoint(x: Double(x2), y: Double(y)))
                     } else {
-                        allStitchPoints.append(StitchPoint(x: Double(exit.x), y: Double(exit.y)))
-                        allStitchPoints.append(StitchPoint(x: Double(entry.x), y: Double(entry.y)))
+                        allStitchPoints.append(StitchPoint(x: Double(x2), y: Double(y)))
+                        allStitchPoints.append(StitchPoint(x: Double(x1), y: Double(y)))
                     }
                 }
             }
@@ -154,48 +153,143 @@ class TextFillStitchGenerator {
         return groups
     }
 
-    /// Find all intersections between a line and a path
-    /// Returns points sorted along the line
-    private func findPathIntersections(
-        lineStart: CGPoint,
-        lineEnd: CGPoint,
-        path: CGPath
-    ) -> [CGPoint] {
-        var intersections: [CGPoint] = []
+    /// Represents an edge (line segment) in the path
+    private struct Edge {
+        let p1: CGPoint
+        let p2: CGPoint
+    }
 
-        // Calculate line length
-        let dx = lineEnd.x - lineStart.x
-        let dy = lineEnd.y - lineStart.y
-        let lineLength = sqrt(dx * dx + dy * dy)
+    /// Extract all edges from a CGPath by walking its elements
+    /// Similar to how outline code walks the path
+    private func extractEdges(from path: CGPath) -> [Edge] {
+        var edges: [Edge] = []
+        var currentPoint: CGPoint?
+        var subpathStart: CGPoint?
 
-        // Sample at very fine intervals (0.1mm steps)
-        let sampleStep = 0.1
-        let numSamples = Int(ceil(Double(lineLength) / sampleStep))
+        path.applyWithBlock { element in
+            let elementType = element.pointee.type
+            let points = element.pointee.points
 
-        guard numSamples > 0 else { return [] }
+            switch elementType {
+            case .moveToPoint:
+                let point = points[0]
+                currentPoint = point
+                subpathStart = point
 
-        var wasInside = false
+            case .addLineToPoint:
+                let point = points[0]
+                if let start = currentPoint {
+                    edges.append(Edge(p1: start, p2: point))
+                }
+                currentPoint = point
 
-        for i in 0...numSamples {
-            let t = CGFloat(i) / CGFloat(numSamples)
-            let point = CGPoint(
-                x: lineStart.x + dx * t,
-                y: lineStart.y + dy * t
-            )
+            case .addQuadCurveToPoint:
+                // Flatten quadratic curve into line segments
+                let control = points[0]
+                let end = points[1]
+                if let start = currentPoint {
+                    let segments = flattenQuadraticCurve(start: start, control: control, end: end)
+                    edges.append(contentsOf: segments)
+                }
+                currentPoint = end
 
-            // Check if point is inside the path
-            // Try winding rule instead of evenOdd
-            let isInside = path.contains(point, using: .winding)
+            case .addCurveToPoint:
+                // Flatten cubic curve into line segments
+                let control1 = points[0]
+                let control2 = points[1]
+                let end = points[2]
+                if let start = currentPoint {
+                    let segments = flattenCubicCurve(start: start, control1: control1, control2: control2, end: end)
+                    edges.append(contentsOf: segments)
+                }
+                currentPoint = end
 
-            // Detect boundary crossing
-            if i > 0 && isInside != wasInside {
-                // Found an intersection
-                intersections.append(point)
+            case .closeSubpath:
+                // Add edge back to subpath start
+                if let start = subpathStart, let current = currentPoint, start != current {
+                    edges.append(Edge(p1: current, p2: start))
+                }
+                currentPoint = subpathStart
+
+            @unknown default:
+                break
             }
-
-            wasInside = isInside
         }
 
-        return intersections
+        return edges
+    }
+
+    /// Flatten quadratic bezier curve into line segments
+    private func flattenQuadraticCurve(start: CGPoint, control: CGPoint, end: CGPoint) -> [Edge] {
+        var edges: [Edge] = []
+        let numSegments = 10
+
+        var previousPoint = start
+        for i in 1...numSegments {
+            let t = CGFloat(i) / CGFloat(numSegments)
+            let t2 = 1 - t
+
+            let x = t2 * t2 * start.x + 2 * t2 * t * control.x + t * t * end.x
+            let y = t2 * t2 * start.y + 2 * t2 * t * control.y + t * t * end.y
+            let point = CGPoint(x: x, y: y)
+
+            edges.append(Edge(p1: previousPoint, p2: point))
+            previousPoint = point
+        }
+
+        return edges
+    }
+
+    /// Flatten cubic bezier curve into line segments
+    private func flattenCubicCurve(start: CGPoint, control1: CGPoint, control2: CGPoint, end: CGPoint) -> [Edge] {
+        var edges: [Edge] = []
+        let numSegments = 10
+
+        var previousPoint = start
+        for i in 1...numSegments {
+            let t = CGFloat(i) / CGFloat(numSegments)
+            let t2 = 1 - t
+
+            let x = t2 * t2 * t2 * start.x +
+                    3 * t2 * t2 * t * control1.x +
+                    3 * t2 * t * t * control2.x +
+                    t * t * t * end.x
+            let y = t2 * t2 * t2 * start.y +
+                    3 * t2 * t2 * t * control1.y +
+                    3 * t2 * t * t * control2.y +
+                    t * t * t * end.y
+            let point = CGPoint(x: x, y: y)
+
+            edges.append(Edge(p1: previousPoint, p2: point))
+            previousPoint = point
+        }
+
+        return edges
+    }
+
+    /// Find where a horizontal line at Y intersects an edge
+    /// Returns the X coordinate of intersection, or nil if no intersection
+    private func findHorizontalIntersection(edge: Edge, atY y: CGFloat) -> CGFloat? {
+        let y1 = edge.p1.y
+        let y2 = edge.p2.y
+
+        // Check if edge crosses this Y coordinate
+        let minY = min(y1, y2)
+        let maxY = max(y1, y2)
+
+        guard y >= minY && y <= maxY else {
+            return nil
+        }
+
+        // Handle horizontal edges (parallel to scanline)
+        if abs(y2 - y1) < 0.0001 {
+            return nil
+        }
+
+        // Calculate X coordinate of intersection using linear interpolation
+        let t = (y - y1) / (y2 - y1)
+        let x = edge.p1.x + t * (edge.p2.x - edge.p1.x)
+
+        return x
     }
 }
