@@ -157,80 +157,73 @@ class TextFillStitchGenerator {
         // For satin fill, lines should be closer together
         let lineSpacing = 1.0 / (density * 1.5) // mm between fill lines
 
-        // Convert angle to radians
+        // Expand bounds slightly to ensure complete coverage
+        let expandedBounds = bounds.insetBy(dx: -5, dy: -5)
+
+        // Use rotation-based approach for clarity and correctness
+        // Strategy: rotate coordinate system so fill lines become horizontal,
+        // generate horizontal scanlines, then rotate results back
+
         // Negate angle because Y-axis is flipped (Y increases downward)
-        let fillAngleRad = -angle * .pi / 180.0  // Direction of fill lines (the stitches themselves)
-        let stepAngleRad = fillAngleRad + .pi / 2 // Direction to step for parallel lines
+        let fillAngleRad = -angle * .pi / 180.0
 
-        // Determine scanning bounds
-        let expandedBounds = bounds.insetBy(dx: -10, dy: -10)
+        // Create rotation transform (rotate by -fillAngle to make fill lines horizontal)
+        let rotateToHorizontal = CGAffineTransform(rotationAngle: -fillAngleRad)
+        let rotateBack = CGAffineTransform(rotationAngle: fillAngleRad)
 
-        // Calculate scanline length (needs to be long enough to cross entire bounds)
-        let scanLength = Double(sqrt(
-            expandedBounds.width * expandedBounds.width +
-            expandedBounds.height * expandedBounds.height
-        ))
+        // Rotate the path and bounds to align fill direction with horizontal
+        let rotatedPath = path.copy(using: &rotateToHorizontal.unsafelyUnwrapped)!
+        let rotatedBounds = expandedBounds.applying(rotateToHorizontal)
 
-        // Calculate number of scanlines needed
-        let numLines = Int(ceil(scanLength / lineSpacing))
+        // Generate horizontal scanlines in rotated space
+        let minY = rotatedBounds.minY
+        let maxY = rotatedBounds.maxY
+        let scanlineWidth = rotatedBounds.width * 2 // Make sure scanlines are long enough
 
-        // Collect all scanline segments
         var scanlineSegments: [[CGPoint]] = []
+        var y = minY
+        var scanlineIndex = 0
 
-        // Generate scanlines AT the fill angle, stepped perpendicular
-        for i in 0..<numLines {
-            let offset = Double(i) * lineSpacing - scanLength / 2
+        while y <= maxY {
+            // Create horizontal scanline at this Y
+            let scanlineStart = CGPoint(x: rotatedBounds.midX - scanlineWidth, y: y)
+            let scanlineEnd = CGPoint(x: rotatedBounds.midX + scanlineWidth, y: y)
 
-            // Calculate scanline position (step perpendicular from center)
-            let centerX = expandedBounds.midX
-            let centerY = expandedBounds.midY
-
-            let stepX = centerX + CGFloat(cos(stepAngleRad) * offset)
-            let stepY = centerY + CGFloat(sin(stepAngleRad) * offset)
-
-            // Create scanline at fill angle through this point
-            let startX = stepX - CGFloat(cos(fillAngleRad) * scanLength / 2)
-            let startY = stepY - CGFloat(sin(fillAngleRad) * scanLength / 2)
-            let endX = stepX + CGFloat(cos(fillAngleRad) * scanLength / 2)
-            let endY = stepY + CGFloat(sin(fillAngleRad) * scanLength / 2)
-
-            let startPoint = CGPoint(x: startX, y: startY)
-            let endPoint = CGPoint(x: endX, y: endY)
-
-            // Find intersections of this line with the path
+            // Find intersections with the rotated path
             let intersections = findLinePathIntersections(
-                lineStart: startPoint,
-                lineEnd: endPoint,
-                path: path
+                lineStart: scanlineStart,
+                lineEnd: scanlineEnd,
+                path: rotatedPath
             )
 
-            // Convert intersections to segments for this scanline
+            // Pair up intersections (entry/exit)
             if intersections.count >= 2 {
-                // Sort by distance from start
-                let sortedIntersections = intersections.sorted { i1, i2 in
-                    let d1 = distance(startPoint, i1)
-                    let d2 = distance(startPoint, i2)
-                    return d1 < d2
-                }
+                // Sort by X coordinate
+                let sortedIntersections = intersections.sorted { $0.x < $1.x }
 
-                // Collect entry/exit pairs for this scanline
-                // Pair up intersections (entry/exit) for each segment
+                // Process pairs
                 for j in stride(from: 0, to: sortedIntersections.count - 1, by: 2) {
-                    let entry = sortedIntersections[j]
-                    let exit = sortedIntersections[j + 1]
+                    var entry = sortedIntersections[j]
+                    var exit = sortedIntersections[j + 1]
+
+                    // Rotate points back to original coordinate system
+                    entry = entry.applying(rotateBack)
+                    exit = exit.applying(rotateBack)
 
                     // For satin stitch zigzag: reverse direction on alternate scanlines
-                    if i % 2 == 0 {
+                    if scanlineIndex % 2 == 0 {
                         scanlineSegments.append([entry, exit])
                     } else {
                         scanlineSegments.append([exit, entry])
                     }
                 }
             }
+
+            y += lineSpacing
+            scanlineIndex += 1
         }
 
         // Connect segments into continuous stitch path
-        // Gaps will be detected and handled at higher level
         var stitchPoints: [StitchPoint] = []
         for segment in scanlineSegments {
             for point in segment {
