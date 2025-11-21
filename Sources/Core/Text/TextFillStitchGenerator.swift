@@ -178,7 +178,7 @@ class TextFillStitchGenerator {
     }
 
     /// Find intersections between a line segment and a path
-    /// This is a simplified version that samples the line and tests if points are inside the path
+    /// Uses sampling with binary search refinement for precise boundary detection
     private func findLinePathIntersections(
         lineStart: CGPoint,
         lineEnd: CGPoint,
@@ -187,8 +187,10 @@ class TextFillStitchGenerator {
         var intersections: [CGPoint] = []
 
         // Sample the line at fine intervals
-        let samples = 200
+        let samples = 400 // Increased for better precision
         var wasInside = false
+        var prevT: CGFloat = 0
+        var prevPoint = lineStart
 
         for i in 0...samples {
             let t = CGFloat(i) / CGFloat(samples)
@@ -201,13 +203,61 @@ class TextFillStitchGenerator {
 
             // Detect transitions (entry/exit)
             if i > 0 && isInside != wasInside {
-                intersections.append(point)
+                // Binary search to refine the intersection point
+                let refinedPoint = refineIntersection(
+                    lineStart: lineStart,
+                    lineEnd: lineEnd,
+                    path: path,
+                    t1: prevT,
+                    t2: t,
+                    wasInside: wasInside
+                )
+                intersections.append(refinedPoint)
             }
 
             wasInside = isInside
+            prevT = t
+            prevPoint = point
         }
 
         return intersections
+    }
+
+    /// Refine intersection point using binary search
+    private func refineIntersection(
+        lineStart: CGPoint,
+        lineEnd: CGPoint,
+        path: CGPath,
+        t1: CGFloat,
+        t2: CGFloat,
+        wasInside: Bool
+    ) -> CGPoint {
+        var tMin = t1
+        var tMax = t2
+
+        // Binary search for precise intersection (10 iterations gives ~0.1% precision)
+        for _ in 0..<10 {
+            let tMid = (tMin + tMax) / 2
+            let midPoint = CGPoint(
+                x: lineStart.x + (lineEnd.x - lineStart.x) * tMid,
+                y: lineStart.y + (lineEnd.y - lineStart.y) * tMid
+            )
+
+            let isInside = path.contains(midPoint, using: .winding)
+
+            if isInside == wasInside {
+                tMin = tMid
+            } else {
+                tMax = tMid
+            }
+        }
+
+        // Use the point just inside the boundary
+        let finalT = wasInside ? tMax : tMin
+        return CGPoint(
+            x: lineStart.x + (lineEnd.x - lineStart.x) * finalT,
+            y: lineStart.y + (lineEnd.y - lineStart.y) * finalT
+        )
     }
 
     /// Calculate distance between two points
