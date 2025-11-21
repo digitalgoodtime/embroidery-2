@@ -188,12 +188,13 @@ class TextFillStitchGenerator {
             let centerY = expandedBounds.midY
 
             // Start point (one end of the scanline)
+            // Note: Y-axis is flipped (Y increases downward), so negate Y components
             let startX = centerX + CGFloat(cos(perpAngle) * offset - sin(perpAngle) * scanLength / 2)
-            let startY = centerY + CGFloat(sin(perpAngle) * offset + cos(perpAngle) * scanLength / 2)
+            let startY = centerY - CGFloat(sin(perpAngle) * offset + cos(perpAngle) * scanLength / 2)
 
             // End point (other end of the scanline)
             let endX = centerX + CGFloat(cos(perpAngle) * offset + sin(perpAngle) * scanLength / 2)
-            let endY = centerY + CGFloat(sin(perpAngle) * offset - cos(perpAngle) * scanLength / 2)
+            let endY = centerY - CGFloat(sin(perpAngle) * offset - cos(perpAngle) * scanLength / 2)
 
             let startPoint = CGPoint(x: startX, y: startY)
             let endPoint = CGPoint(x: endX, y: endY)
