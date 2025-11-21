@@ -253,7 +253,9 @@ class TextFillStitchGenerator {
         }
 
         // Use the point just inside the boundary
-        let finalT = wasInside ? tMax : tMin
+        // If wasInside: we're exiting, so use tMin (last inside point)
+        // If !wasInside: we're entering, so use tMax (first inside point)
+        let finalT = wasInside ? tMin : tMax
         return CGPoint(
             x: lineStart.x + (lineEnd.x - lineStart.x) * finalT,
             y: lineStart.y + (lineEnd.y - lineStart.y) * finalT
