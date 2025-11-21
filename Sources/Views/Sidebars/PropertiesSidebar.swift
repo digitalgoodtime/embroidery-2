@@ -278,97 +278,298 @@ struct DigitizerToolProperties: View {
 
 struct TextToolProperties: View {
     @ObservedObject var documentState: DocumentState
+    @ObservedObject var textState = TextToolState.shared
+
+    @State private var validationIssues: [TextStitchGenerator.ValidationIssue] = []
 
     var body: some View {
-        VStack(alignment: .leading, spacing: .spacing2_5) {
-            // Instructions
-            HStack(alignment: .top, spacing: .spacing2) {
-                Image(systemName: "info.circle.fill")
-                    .font(.system(size: .iconSmall))
-                    .foregroundColor(.accentColor)
+        ScrollView {
+            VStack(alignment: .leading, spacing: .spacing2_5) {
+                // Instructions
+                HStack(alignment: .top, spacing: .spacing2) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: .iconSmall))
+                        .foregroundColor(.accentColor)
 
-                Text("Click on canvas to add text")
-                    .font(.captionSmall)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.spacing2)
-            .background(Color.accentColor.opacity(0.1))
-            .cornerRadius(.radiusSmall)
+                    Text("Enter text below, then click canvas to place")
+                        .font(.captionSmall)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.spacing2)
+                .background(Color.accentColor.opacity(0.1))
+                .cornerRadius(.radiusSmall)
 
-            Divider()
+                // Text Input
+                VStack(alignment: .leading, spacing: .spacing1_5) {
+                    Text("Text")
+                        .font(.label)
+                        .foregroundColor(.textPrimary)
 
-            // Stitch Visualization
-            VStack(alignment: .leading, spacing: .spacing2) {
-                Text("Stitch Visualization")
-                    .font(.label)
-                    .foregroundColor(.textPrimary)
+                    TextField("Enter text...", text: $textState.text, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .lineLimit(1...3)
+                        .font(.system(size: 12))
+                }
 
-                Toggle("Show Stitch Points", isOn: $documentState.showStitchPoints)
-                    .font(.captionSmall)
+                Divider()
 
-                Toggle("Show Thread Path", isOn: $documentState.showThreadPath)
-                    .font(.captionSmall)
+                // Font Selection
+                VStack(alignment: .leading, spacing: .spacing1_5) {
+                    Text("Font")
+                        .font(.label)
+                        .foregroundColor(.textPrimary)
 
-                if documentState.showStitchPoints {
+                    // Search field
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                            .font(.system(size: 10))
+
+                        TextField("Search...", text: $textState.searchQuery)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 11))
+
+                        if !textState.searchQuery.isEmpty {
+                            Button(action: { textState.searchQuery = "" }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 10))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.spacing1)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(.radiusSmall)
+
+                    // Font list (compact)
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: .spacing0_5) {
+                            ForEach(textState.filteredFonts().prefix(20)) { font in
+                                fontRow(font)
+                            }
+                        }
+                    }
+                    .frame(height: 120)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(.radiusSmall)
+
+                    // Size slider
                     VStack(alignment: .leading, spacing: .spacing1) {
+                        HStack {
+                            Text("Size:")
+                                .font(.captionSmall)
+                            Spacer()
+                            Text("\(String(format: "%.1f", textState.fontSize)) mm")
+                                .font(.mono)
+                                .foregroundColor(.textSecondary)
+                        }
+
+                        Slider(value: $textState.fontSize, in: 8.0...100.0, step: 0.5)
+                            .controlSize(.small)
+                    }
+                }
+
+                Divider()
+
+                // Stitch Technique
+                VStack(alignment: .leading, spacing: .spacing1_5) {
+                    Text("Stitch Technique")
+                        .font(.label)
+                        .foregroundColor(.textPrimary)
+
+                    Picker("", selection: $textState.stitchTechnique) {
+                        ForEach(TextStitchTechnique.allCases, id: \.self) { technique in
+                            Label(technique.rawValue, systemImage: technique.icon).tag(technique)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                }
+
+                // Colors
+                if textState.stitchTechnique.needsOutline {
+                    HStack {
+                        Text("Outline:")
+                            .font(.label)
+                        ColorPicker("", selection: Binding(
+                            get: { Color(textState.outlineColor.nsColor) },
+                            set: { textState.outlineColor = CodableColor(NSColor($0)) }
+                        ))
+                        .labelsHidden()
+                    }
+                }
+
+                if textState.stitchTechnique.needsFill {
+                    HStack {
+                        Text("Fill:")
+                            .font(.label)
+                        ColorPicker("", selection: Binding(
+                            get: { Color(textState.fillColor.nsColor) },
+                            set: { textState.fillColor = CodableColor(NSColor($0)) }
+                        ))
+                        .labelsHidden()
+                    }
+                }
+
+                Divider()
+
+                // Density
+                VStack(alignment: .leading, spacing: .spacing1_5) {
+                    HStack {
+                        Text("Density:")
+                            .font(.label)
+                        Spacer()
+                        Toggle("Auto", isOn: Binding(
+                            get: { textState.densityMode == .auto },
+                            set: { textState.densityMode = $0 ? .auto : .manual }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                    }
+
+                    if textState.densityMode == .manual {
+                        HStack {
+                            Slider(value: $textState.manualDensity, in: 2.0...8.0, step: 0.5)
+                                .controlSize(.small)
+                            Text("\(String(format: "%.1f", textState.manualDensity)) st/mm")
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(.textSecondary)
+                                .frame(width: 60, alignment: .trailing)
+                        }
+                    } else {
+                        let autoDensity = textState.calculateAutoDensity()
+                        Text("Auto: \(String(format: "%.1f", autoDensity)) st/mm")
+                            .font(.system(size: 10))
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+
+                // Letter Spacing
+                VStack(alignment: .leading, spacing: .spacing1) {
+                    HStack {
+                        Text("Letter Spacing:")
+                            .font(.label)
+                        Spacer()
+                        Text("\(String(format: "%.1f", textState.letterSpacing)) mm")
+                            .font(.mono)
+                            .foregroundColor(.textSecondary)
+                    }
+
+                    Slider(value: $textState.letterSpacing, in: -2.0...5.0, step: 0.1)
+                        .controlSize(.small)
+                }
+
+                // Alignment
+                VStack(alignment: .leading, spacing: .spacing1_5) {
+                    Text("Alignment")
+                        .font(.label)
+                        .foregroundColor(.textPrimary)
+
+                    Picker("", selection: $textState.alignment) {
+                        Label("Left", systemImage: "text.alignleft").tag(TextObject.TextAlignment.left)
+                        Label("Center", systemImage: "text.aligncenter").tag(TextObject.TextAlignment.center)
+                        Label("Right", systemImage: "text.alignright").tag(TextObject.TextAlignment.right)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                }
+
+                Divider()
+
+                // Stitch Visualization
+                VStack(alignment: .leading, spacing: .spacing1_5) {
+                    Text("Stitch Visualization")
+                        .font(.label)
+                        .foregroundColor(.textPrimary)
+
+                    Toggle("Show Stitch Points", isOn: $documentState.showStitchPoints)
+                        .font(.captionSmall)
+
+                    Toggle("Show Thread Path", isOn: $documentState.showThreadPath)
+                        .font(.captionSmall)
+
+                    if documentState.showStitchPoints {
                         HStack {
                             Text("Point Size:")
                                 .font(.captionSmall)
                             Spacer()
-                            Text(String(format: "%.1f px", documentState.stitchPointSize))
+                            Slider(value: $documentState.stitchPointSize, in: 1.0...5.0, step: 0.5)
+                                .controlSize(.mini)
+                            Text(String(format: "%.1f", documentState.stitchPointSize))
                                 .font(.system(size: 10, design: .monospaced))
                                 .foregroundColor(.textSecondary)
+                                .frame(width: 30)
                         }
-
-                        Slider(value: $documentState.stitchPointSize, in: 1.0...5.0, step: 0.5)
-                            .controlSize(.small)
                     }
                 }
-            }
 
-            Divider()
+                // Validation warnings
+                if !validationIssues.isEmpty {
+                    Divider()
 
-            // Font Info
-            VStack(alignment: .leading, spacing: .spacing1_5) {
-                Text("Font System")
-                    .font(.label)
-                    .foregroundColor(.textPrimary)
+                    VStack(alignment: .leading, spacing: .spacing1) {
+                        ForEach(validationIssues.indices, id: \.self) { index in
+                            let issue = validationIssues[index]
+                            HStack(alignment: .top, spacing: .spacing1) {
+                                Image(systemName: issue.severity == .error ? "exclamationmark.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundStyle(issue.severity == .error ? .red : .yellow)
+                                    .font(.system(size: 10))
 
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.green)
-                    Text("Easy")
-                        .font(.system(size: 10))
-                    Text("Simple fonts")
-                        .font(.system(size: 10))
-                        .foregroundColor(.textSecondary)
-                }
-
-                HStack {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.yellow)
-                    Text("Medium")
-                        .font(.system(size: 10))
-                    Text("Moderate detail")
-                        .font(.system(size: 10))
-                        .foregroundColor(.textSecondary)
-                }
-
-                HStack {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.orange)
-                    Text("Complex")
-                        .font(.system(size: 10))
-                    Text("Intricate details")
-                        .font(.system(size: 10))
-                        .foregroundColor(.textSecondary)
+                                Text(issue.message)
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                    .padding(.spacing1_5)
+                    .background(Color.yellow.opacity(0.1))
+                    .cornerRadius(.radiusSmall)
                 }
             }
         }
+        .onChange(of: textState.text) { _ in validateText() }
+        .onChange(of: textState.fontSize) { _ in validateText() }
+        .onChange(of: textState.densityMode) { _ in validateText() }
+        .onChange(of: textState.manualDensity) { _ in validateText() }
+        .onAppear {
+            validateText()
+        }
+    }
+
+    private func fontRow(_ font: EmbroideryFont) -> some View {
+        Button(action: { textState.selectedFont = font }) {
+            HStack(spacing: .spacing1_5) {
+                Text(font.familyName)
+                    .font(.custom(font.id, size: 11))
+                    .lineLimit(1)
+
+                Spacer()
+
+                Image(systemName: font.difficulty.icon)
+                    .font(.system(size: 8))
+                    .foregroundColor(Color(font.difficulty.color))
+
+                if font.id == textState.selectedFont.id {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.blue)
+                        .font(.system(size: 10))
+                }
+            }
+            .padding(.horizontal, .spacing1)
+            .padding(.vertical, .spacing0_5)
+            .background(
+                RoundedRectangle(cornerRadius: .radiusXSmall)
+                    .fill(font.id == textState.selectedFont.id ? Color.accentColor.opacity(0.15) : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func validateText() {
+        validationIssues = textState.validate()
     }
 }
 

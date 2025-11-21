@@ -13,8 +13,6 @@ struct CanvasView: View {
 
     @State private var dragOffset: CGSize = .zero
     @GestureState private var magnificationAmount: CGFloat = 1.0
-    @State private var showTextDialog: Bool = false
-    @State private var textDialogPosition: CGPoint = .zero
 
     var body: some View {
         GeometryReader { geometry in
@@ -88,33 +86,11 @@ struct CanvasView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Embroidery canvas")
         .accessibilityHint("Drag to pan, pinch to zoom, tap to use current tool")
-        .sheet(isPresented: $showTextDialog) {
-            TextInputDialog(
-                position: textDialogPosition,
-                defaultColor: getCurrentThreadColor(),
-                onConfirm: { textObject in
-                    documentState.addText(textObject)
-                }
-            )
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .showTextInputDialog)) { notification in
-            if let positionValue = notification.userInfo?[TextToolNotificationKey.position] as? NSValue {
-                textDialogPosition = positionValue.pointValue
-                showTextDialog = true
+        .onReceive(NotificationCenter.default.publisher(for: .addTextToDocument)) { notification in
+            if let textObject = notification.userInfo?[TextToolNotificationKey.textObject] as? TextObject {
+                documentState.addText(textObject)
             }
         }
-    }
-
-    private func getCurrentThreadColor() -> CodableColor {
-        // Try to get the last used color from the current layer
-        if let selectedID = documentState.selectedLayerID,
-           let layer = documentState.document.layers.first(where: { $0.id == selectedID }),
-           let lastStitch = layer.stitches.last {
-            return lastStitch.color
-        }
-
-        // Default to black
-        return CodableColor(.black)
     }
 
     private func handleCanvasTap(at location: CGPoint, in geometry: GeometryProxy) {
