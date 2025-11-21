@@ -168,11 +168,11 @@ class TextFillStitchGenerator {
         let fillAngleRad = -angle * .pi / 180.0
 
         // Create rotation transform (rotate by -fillAngle to make fill lines horizontal)
-        let rotateToHorizontal = CGAffineTransform(rotationAngle: -fillAngleRad)
+        var rotateToHorizontal = CGAffineTransform(rotationAngle: -fillAngleRad)
         let rotateBack = CGAffineTransform(rotationAngle: fillAngleRad)
 
         // Rotate the path and bounds to align fill direction with horizontal
-        let rotatedPath = path.copy(using: &rotateToHorizontal.unsafelyUnwrapped)!
+        let rotatedPath = path.copy(using: &rotateToHorizontal)!
         let rotatedBounds = expandedBounds.applying(rotateToHorizontal)
 
         // Generate horizontal scanlines in rotated space
@@ -247,7 +247,6 @@ class TextFillStitchGenerator {
         let samples = 400 // Increased for better precision
         var wasInside = false
         var prevT: CGFloat = 0
-        var prevPoint = lineStart
 
         for i in 0...samples {
             let t = CGFloat(i) / CGFloat(samples)
@@ -275,7 +274,6 @@ class TextFillStitchGenerator {
 
             wasInside = isInside
             prevT = t
-            prevPoint = point
         }
 
         return intersections
