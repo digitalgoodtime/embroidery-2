@@ -169,6 +169,7 @@ class TextPathGenerator {
         let interval = 1.0 / density // mm between samples
 
         var previousPoint: CGPoint?
+        var subpathStart: CGPoint?  // Track start of current subpath
 
         path.applyWithBlock { element in
             let elementType = element.pointee.type
@@ -179,6 +180,7 @@ class TextPathGenerator {
                 let point = elementPoints[0]
                 points.append(point)
                 previousPoint = point
+                subpathStart = point  // Mark start of new subpath
 
             case .addLineToPoint:
                 let point = elementPoints[0]
@@ -234,8 +236,23 @@ class TextPathGenerator {
                 previousPoint = end
 
             case .closeSubpath:
-                if let first = points.first, let last = previousPoint, first != last {
-                    points.append(first)
+                // Close the current subpath by connecting back to its start
+                if let start = subpathStart, let last = previousPoint, start != last {
+                    // Add intermediate points to close the gap smoothly
+                    let dx = start.x - last.x
+                    let dy = start.y - last.y
+                    let length = sqrt(dx * dx + dy * dy)
+
+                    let numSegments = max(1, Int(ceil(length / interval)))
+
+                    for i in 1...numSegments {
+                        let t = CGFloat(i) / CGFloat(numSegments)
+                        let interpolated = CGPoint(
+                            x: last.x + dx * t,
+                            y: last.y + dy * t
+                        )
+                        points.append(interpolated)
+                    }
                 }
 
             @unknown default:
