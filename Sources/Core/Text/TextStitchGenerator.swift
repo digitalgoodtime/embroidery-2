@@ -23,7 +23,7 @@ class TextStitchGenerator {
         let pointSize = TextPathGenerator.mmToPoints(textObject.fontSize)
         let font = embroideryFont.nsFont.withSize(pointSize)
 
-        // Calculate bounds first
+        // Generate paths once for all techniques
         let pathResult = pathGenerator.generatePaths(
             for: textObject.text,
             font: font,
@@ -33,19 +33,29 @@ class TextStitchGenerator {
         )
 
         let bounds = pathResult.bounds
+        let density = textObject.effectiveDensity()
 
         // Generate stitches based on technique
         let technique = textObject.stitchTechnique
 
         // Generate fill stitches first (if needed) so they appear under outline
         if technique.needsFill {
-            let fillStitches = fillGenerator.generateFillStitches(for: textObject)
+            let fillColor = textObject.fillColor ?? textObject.outlineColor
+            let fillStitches = fillGenerator.generateFillStitches(
+                pathResult: pathResult,
+                density: density,
+                color: fillColor
+            )
             allStitchGroups.append(contentsOf: fillStitches)
         }
 
         // Generate outline stitches (if needed)
         if technique.needsOutline {
-            let outlineStitches = outlineGenerator.generateOutlineStitches(for: textObject)
+            let outlineStitches = outlineGenerator.generateOutlineStitches(
+                pathResult: pathResult,
+                density: density,
+                color: textObject.outlineColor
+            )
             allStitchGroups.append(contentsOf: outlineStitches)
         }
 

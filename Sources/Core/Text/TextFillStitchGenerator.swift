@@ -7,42 +7,31 @@ class TextFillStitchGenerator {
 
     private let pathGenerator = TextPathGenerator()
 
-    /// Generate fill stitches from a TextObject
-    /// - Parameter textObject: The text object to generate stitches for
+    /// Generate fill stitches from pre-generated path result
+    /// - Parameters:
+    ///   - pathResult: The path result containing glyph paths
+    ///   - density: Stitch density
+    ///   - color: Thread color
     /// - Returns: Array of StitchGroups
-    func generateFillStitches(for textObject: TextObject) -> [StitchGroup] {
-        // Get the font
-        guard let embroideryFont = EmbroideryFontManager.shared.font(named: textObject.fontName),
-              let fillColor = textObject.fillColor else {
-            return []
-        }
-
-        // Convert font size from mm to points
-        let pointSize = TextPathGenerator.mmToPoints(textObject.fontSize)
-        let font = embroideryFont.nsFont.withSize(pointSize)
-
-        // Generate paths for text
-        let pathResult = pathGenerator.generatePaths(
-            for: textObject.text,
-            font: font,
-            at: textObject.position,
-            letterSpacing: CGFloat(textObject.letterSpacing),
-            alignment: textObject.alignment
-        )
-
+    func generateFillStitches(
+        pathResult: TextPathGenerator.PathResult,
+        density: Double,
+        color: CodableColor
+    ) -> [StitchGroup] {
         var stitchGroups: [StitchGroup] = []
 
         // Process each glyph path
         for glyphPath in pathResult.glyphPaths {
             // Use the SAME approach as outline - sample the path into boundary points
-            let subpaths = pathGenerator.samplePathBySubpath(glyphPath.path, density: 2.0)
+            // Use the actual density to ensure we capture all boundary detail
+            let subpaths = pathGenerator.samplePathBySubpath(glyphPath.path, density: density)
 
             // Generate fill for this glyph using the sampled boundary
             let fillStitchGroups = generateFillFromBoundary(
                 subpaths: subpaths,
                 bounds: glyphPath.bounds,
-                density: textObject.effectiveDensity(),
-                color: fillColor
+                density: density,
+                color: color
             )
 
             stitchGroups.append(contentsOf: fillStitchGroups)

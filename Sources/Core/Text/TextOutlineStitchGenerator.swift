@@ -66,27 +66,45 @@ class TextOutlineStitchGenerator {
         return stitchGroups
     }
 
-    /// Generate outline stitches from a TextObject
-    /// - Parameter textObject: The text object to generate stitches for
+    /// Generate outline stitches from pre-generated path result
+    /// - Parameters:
+    ///   - pathResult: The path result containing glyph paths
+    ///   - density: Stitch density
+    ///   - color: Thread color
     /// - Returns: Array of StitchGroups
-    func generateOutlineStitches(for textObject: TextObject) -> [StitchGroup] {
-        // Get the font
-        guard let embroideryFont = EmbroideryFontManager.shared.font(named: textObject.fontName) else {
-            return []
+    func generateOutlineStitches(
+        pathResult: TextPathGenerator.PathResult,
+        density: Double,
+        color: CodableColor
+    ) -> [StitchGroup] {
+        var stitchGroups: [StitchGroup] = []
+
+        // Process each glyph path
+        for glyphPath in pathResult.glyphPaths {
+            // Sample points along the path, split by subpath
+            let subpathGroups = pathGenerator.samplePathBySubpath(glyphPath.path, density: density)
+
+            for subpathPoints in subpathGroups {
+                guard !subpathPoints.isEmpty else { continue }
+
+                // Convert CGPoints to StitchPoints
+                let stitchPoints = subpathPoints.map { point in
+                    StitchPoint(x: Double(point.x), y: Double(point.y))
+                }
+
+                // Create a stitch group for this subpath
+                let stitchGroup = StitchGroup(
+                    id: UUID(),
+                    type: .running,
+                    points: stitchPoints,
+                    color: color,
+                    density: density
+                )
+
+                stitchGroups.append(stitchGroup)
+            }
         }
 
-        // Convert font size from mm to points
-        let pointSize = TextPathGenerator.mmToPoints(textObject.fontSize)
-        let font = embroideryFont.nsFont.withSize(pointSize)
-
-        return generateOutlineStitches(
-            text: textObject.text,
-            font: font,
-            position: textObject.position,
-            density: textObject.effectiveDensity(),
-            color: textObject.outlineColor,
-            letterSpacing: textObject.letterSpacing,
-            alignment: textObject.alignment
-        )
+        return stitchGroups
     }
 }
