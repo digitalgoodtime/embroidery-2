@@ -43,29 +43,81 @@ class TextFillStitchGenerator {
         // Process each glyph path
         for glyphPath in pathResult.glyphPaths {
             // Generate fill lines for this glyph
-            let fillStitches = generateFillForPath(
+            let fillStitchGroups = generateFillGroupsForPath(
                 path: glyphPath.path,
                 bounds: glyphPath.bounds,
                 density: density,
-                angle: fillAngle
+                angle: fillAngle,
+                color: color
             )
 
-            // Skip if no stitches
-            guard !fillStitches.isEmpty else { continue }
-
-            // Create a stitch group for this character fill
-            let stitchGroup = StitchGroup(
-                id: UUID(),
-                type: .satin,
-                points: fillStitches,
-                color: color,
-                density: density
-            )
-
-            stitchGroups.append(stitchGroup)
+            stitchGroups.append(contentsOf: fillStitchGroups)
         }
 
         return stitchGroups
+    }
+
+    /// Generate fill stitch groups for a path, splitting into multiple groups for discontinuities
+    private func generateFillGroupsForPath(
+        path: CGPath,
+        bounds: CGRect,
+        density: Double,
+        angle: Double,
+        color: CodableColor
+    ) -> [StitchGroup] {
+        let allStitches = generateFillForPath(
+            path: path,
+            bounds: bounds,
+            density: density,
+            angle: angle
+        )
+
+        guard !allStitches.isEmpty else { return [] }
+
+        // Split into groups at large gaps (holes)
+        var groups: [StitchGroup] = []
+        var currentGroup: [StitchPoint] = []
+        let maxJumpDistance = 5.0  // mm
+
+        for i in 0..<allStitches.count {
+            let stitch = allStitches[i]
+
+            if i > 0 {
+                let prevStitch = allStitches[i - 1]
+                let dx = stitch.x - prevStitch.x
+                let dy = stitch.y - prevStitch.y
+                let distance = sqrt(dx * dx + dy * dy)
+
+                // If large gap, start new group
+                if distance > maxJumpDistance {
+                    if !currentGroup.isEmpty {
+                        groups.append(StitchGroup(
+                            id: UUID(),
+                            type: .satin,
+                            points: currentGroup,
+                            color: color,
+                            density: density
+                        ))
+                        currentGroup = []
+                    }
+                }
+            }
+
+            currentGroup.append(stitch)
+        }
+
+        // Add final group
+        if !currentGroup.isEmpty {
+            groups.append(StitchGroup(
+                id: UUID(),
+                type: .satin,
+                points: currentGroup,
+                color: color,
+                density: density
+            ))
+        }
+
+        return groups
     }
 
     /// Generate fill stitches from a TextObject
@@ -101,8 +153,6 @@ class TextFillStitchGenerator {
         density: Double,
         angle: Double
     ) -> [StitchPoint] {
-        var stitchPoints: [StitchPoint] = []
-
         // Calculate line spacing based on density
         // For satin fill, lines should be closer together
         let lineSpacing = 1.0 / (density * 1.5) // mm between fill lines
@@ -125,6 +175,9 @@ class TextFillStitchGenerator {
 
         // Calculate number of scanlines needed
         let numLines = Int(ceil(scanLength / lineSpacing))
+
+        // Collect all scanline segments first
+        var scanlineSegments: [[CGPoint]] = []
 
         // Generate scanlines
         for i in 0..<numLines {
@@ -152,8 +205,7 @@ class TextFillStitchGenerator {
                 path: path
             )
 
-            // Convert intersections to stitch segments
-            // Intersections should be paired (entry/exit)
+            // Convert intersections to segments for this scanline
             if intersections.count >= 2 {
                 // Sort by distance from start
                 let sortedIntersections = intersections.sorted { i1, i2 in
@@ -162,15 +214,32 @@ class TextFillStitchGenerator {
                     return d1 < d2
                 }
 
-                // Pair up intersections (entry/exit pairs)
-                for j in stride(from: 0, to: sortedIntersections.count - 1, by: 2) {
-                    let entry = sortedIntersections[j]
-                    let exit = sortedIntersections[j + 1]
-
-                    // Add stitch segment
-                    stitchPoints.append(StitchPoint(x: Double(entry.x), y: Double(entry.y)))
-                    stitchPoints.append(StitchPoint(x: Double(exit.x), y: Double(exit.y)))
+                // Collect entry/exit pairs for this scanline
+                // For proper satin stitches, reverse alternate lines
+                if i % 2 == 0 {
+                    // Even scanline: left to right
+                    for j in stride(from: 0, to: sortedIntersections.count - 1, by: 2) {
+                        let entry = sortedIntersections[j]
+                        let exit = sortedIntersections[j + 1]
+                        scanlineSegments.append([entry, exit])
+                    }
+                } else {
+                    // Odd scanline: right to left (reversed pairs)
+                    for j in stride(from: sortedIntersections.count - 2, through: 0, by: -2) {
+                        let entry = sortedIntersections[j + 1]  // Reversed
+                        let exit = sortedIntersections[j]       // Reversed
+                        scanlineSegments.append([entry, exit])
+                    }
                 }
+            }
+        }
+
+        // Connect segments into continuous stitch path
+        // Gaps will be detected and handled at higher level
+        var stitchPoints: [StitchPoint] = []
+        for segment in scanlineSegments {
+            for point in segment {
+                stitchPoints.append(StitchPoint(x: Double(point.x), y: Double(point.y)))
             }
         }
 
