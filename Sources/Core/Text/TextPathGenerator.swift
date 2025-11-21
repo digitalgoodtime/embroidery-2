@@ -49,7 +49,7 @@ class TextPathGenerator {
         }
 
         // Calculate total line width for alignment
-        var lineWidth = CTLineGetTypographicBounds(line, nil, nil, nil)
+        let lineWidth = CTLineGetTypographicBounds(line, nil, nil, nil)
 
         // Adjust starting position based on alignment
         var currentX = position.x
@@ -99,7 +99,7 @@ class TextPathGenerator {
                     let mutablePath = CGMutablePath()
 
                     // Apply translation to position glyph
-                    var transform = CGAffineTransform(translationX: currentX + position.x, y: position.y)
+                    let transform = CGAffineTransform(translationX: currentX + position.x, y: position.y)
                     mutablePath.addPath(glyphPath, transform: transform)
 
                     // Get bounds for this glyph
@@ -159,7 +159,6 @@ class TextPathGenerator {
         // Higher density = smaller interval
         let interval = 1.0 / density // mm between samples
 
-        var currentLength: CGFloat = 0
         var previousPoint: CGPoint?
 
         path.applyWithBlock { element in
@@ -171,7 +170,6 @@ class TextPathGenerator {
                 let point = elementPoints[0]
                 points.append(point)
                 previousPoint = point
-                currentLength = 0
 
             case .addLineToPoint:
                 let point = elementPoints[0]

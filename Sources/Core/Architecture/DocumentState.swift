@@ -153,7 +153,7 @@ class DocumentState: ObservableObject {
 
         // Generate stitches for the text
         let stitchGenerator = TextStitchGenerator()
-        let (stitchGroups, bounds) = stitchGenerator.generateStitches(for: textObject)
+        let (stitchGroups, _) = stitchGenerator.generateStitches(for: textObject)
 
         // Add stitches to the layer
         if let layerIndex = document.layers.firstIndex(where: { $0.id == targetLayerID }) {

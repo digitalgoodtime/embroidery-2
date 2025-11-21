@@ -61,13 +61,13 @@ struct TextInputDialog: View {
                 }
                 .buttonStyle(.plain)
             }
-            .padding(Spacing.large)
+            .padding(.spacing4)
 
             Divider()
 
             // Content
             ScrollView {
-                VStack(spacing: Spacing.large) {
+                VStack(spacing: .spacing4) {
                     // Text Input
                     textInputSection
 
@@ -86,7 +86,7 @@ struct TextInputDialog: View {
                     // Preview (future enhancement)
                     previewSection
                 }
-                .padding(Spacing.large)
+                .padding(.spacing4)
             }
 
             // Validation Issues
@@ -112,7 +112,7 @@ struct TextInputDialog: View {
                 .keyboardShortcut(.defaultAction)
                 .disabled(!canConfirm)
             }
-            .padding(Spacing.large)
+            .padding(.spacing4)
         }
         .frame(width: 500, height: 650)
         .onChange(of: text) { _ in validateText() }
@@ -127,7 +127,7 @@ struct TextInputDialog: View {
     // MARK: - Sections
 
     private var textInputSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.medium) {
+        VStack(alignment: .leading, spacing: .spacing3) {
             Text("Text")
                 .font(.system(size: 13, weight: .semibold))
 
@@ -139,7 +139,7 @@ struct TextInputDialog: View {
     }
 
     private var fontSelectionSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.medium) {
+        VStack(alignment: .leading, spacing: .spacing3) {
             Text("Font")
                 .font(.system(size: 13, weight: .semibold))
 
@@ -162,13 +162,13 @@ struct TextInputDialog: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(Spacing.small)
+            .padding(.spacing2)
             .background(Color(nsColor: .controlBackgroundColor))
-            .cornerRadius(CornerRadius.small)
+            .cornerRadius(.radiusSmall)
 
             // Font list
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.small) {
+                LazyVStack(alignment: .leading, spacing: .spacing2) {
                     ForEach(filteredFonts) { font in
                         fontRow(font)
                     }
@@ -176,10 +176,10 @@ struct TextInputDialog: View {
             }
             .frame(height: 150)
             .background(Color(nsColor: .controlBackgroundColor))
-            .cornerRadius(CornerRadius.medium)
+            .cornerRadius(.radiusMedium)
 
             // Size slider
-            VStack(alignment: .leading, spacing: Spacing.small) {
+            VStack(alignment: .leading, spacing: .spacing2) {
                 HStack {
                     Text("Size")
                         .font(.system(size: 12))
@@ -195,12 +195,12 @@ struct TextInputDialog: View {
     }
 
     private var embroiderySettingsSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.medium) {
+        VStack(alignment: .leading, spacing: .spacing3) {
             Text("Embroidery Settings")
                 .font(.system(size: 13, weight: .semibold))
 
             // Stitch Technique
-            VStack(alignment: .leading, spacing: Spacing.small) {
+            VStack(alignment: .leading, spacing: .spacing2) {
                 Text("Stitch Technique")
                     .font(.system(size: 12))
 
@@ -217,9 +217,9 @@ struct TextInputDialog: View {
             }
 
             // Colors
-            HStack(spacing: Spacing.medium) {
+            HStack(spacing: .spacing3) {
                 if stitchTechnique.needsOutline {
-                    VStack(alignment: .leading, spacing: Spacing.small) {
+                    VStack(alignment: .leading, spacing: .spacing2) {
                         Text("Outline Color")
                             .font(.system(size: 12))
 
@@ -232,7 +232,7 @@ struct TextInputDialog: View {
                 }
 
                 if stitchTechnique.needsFill {
-                    VStack(alignment: .leading, spacing: Spacing.small) {
+                    VStack(alignment: .leading, spacing: .spacing2) {
                         Text("Fill Color")
                             .font(.system(size: 12))
 
@@ -246,7 +246,7 @@ struct TextInputDialog: View {
             }
 
             // Density Mode
-            VStack(alignment: .leading, spacing: Spacing.small) {
+            VStack(alignment: .leading, spacing: .spacing2) {
                 HStack {
                     Text("Stitch Density")
                         .font(.system(size: 12))
@@ -278,7 +278,7 @@ struct TextInputDialog: View {
             }
 
             // Letter Spacing
-            VStack(alignment: .leading, spacing: Spacing.small) {
+            VStack(alignment: .leading, spacing: .spacing2) {
                 HStack {
                     Text("Letter Spacing")
                         .font(.system(size: 12))
@@ -292,7 +292,7 @@ struct TextInputDialog: View {
             }
 
             // Alignment
-            VStack(alignment: .leading, spacing: Spacing.small) {
+            VStack(alignment: .leading, spacing: .spacing2) {
                 Text("Alignment")
                     .font(.system(size: 12))
 
@@ -307,13 +307,13 @@ struct TextInputDialog: View {
     }
 
     private var previewSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
+        VStack(alignment: .leading, spacing: .spacing2) {
             Text("Preview")
                 .font(.system(size: 13, weight: .semibold))
 
             // Placeholder for preview
             ZStack {
-                RoundedRectangle(cornerRadius: CornerRadius.medium)
+                RoundedRectangle(cornerRadius: .radiusMedium)
                     .fill(Color(nsColor: .controlBackgroundColor))
 
                 if text.isEmpty {
@@ -331,10 +331,10 @@ struct TextInputDialog: View {
     }
 
     private var validationSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
+        VStack(alignment: .leading, spacing: .spacing2) {
             ForEach(validationIssues.indices, id: \.self) { index in
                 let issue = validationIssues[index]
-                HStack(alignment: .top, spacing: Spacing.small) {
+                HStack(alignment: .top, spacing: .spacing2) {
                     Image(systemName: issue.severity == .error ? "exclamationmark.circle.fill" : "exclamationmark.triangle.fill")
                         .foregroundStyle(issue.severity == .error ? .red : .yellow)
                         .font(.system(size: 12))
@@ -345,7 +345,7 @@ struct TextInputDialog: View {
                 }
             }
         }
-        .padding(Spacing.medium)
+        .padding(.spacing3)
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
     }
 
@@ -353,7 +353,7 @@ struct TextInputDialog: View {
 
     private func fontRow(_ font: EmbroideryFont) -> some View {
         Button(action: { selectedFont = font }) {
-            HStack(spacing: Spacing.medium) {
+            HStack(spacing: .spacing3) {
                 // Font preview
                 Text(font.familyName)
                     .font(.custom(font.id, size: 14))
@@ -362,7 +362,7 @@ struct TextInputDialog: View {
                 Spacer()
 
                 // Difficulty indicator
-                HStack(spacing: Spacing.extraSmall) {
+                HStack(spacing: .spacing1) {
                     Image(systemName: font.difficulty.icon)
                         .font(.system(size: 10))
                         .foregroundColor(Color(font.difficulty.color))
@@ -379,10 +379,10 @@ struct TextInputDialog: View {
                         .font(.system(size: 14))
                 }
             }
-            .padding(.horizontal, Spacing.small)
-            .padding(.vertical, Spacing.extraSmall)
+            .padding(.horizontal, .spacing2)
+            .padding(.vertical, .spacing1)
             .background(
-                RoundedRectangle(cornerRadius: CornerRadius.small)
+                RoundedRectangle(cornerRadius: .radiusSmall)
                     .fill(font.id == selectedFont.id ? Color.accentColor.opacity(0.1) : Color.clear)
             )
         }
