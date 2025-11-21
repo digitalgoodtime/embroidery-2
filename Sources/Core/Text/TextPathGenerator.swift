@@ -64,7 +64,6 @@ class TextPathGenerator {
 
         // Capture Y position (will be shadowed by local variable in loop)
         let baseY = position.y
-        print("DEBUG TextPathGenerator: User clicked at position.y = \(position.y), baseY = \(baseY)")
 
         var glyphPaths: [PathResult.GlyphPath] = []
         var overallBounds: CGRect = .zero

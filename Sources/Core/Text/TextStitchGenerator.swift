@@ -5,7 +5,6 @@ import AppKit
 class TextStitchGenerator {
 
     private let outlineGenerator = TextOutlineStitchGenerator()
-    private let fillGenerator = TextFillStitchGenerator()
     private let pathGenerator = TextPathGenerator()
 
     /// Generate stitches for a text object based on its stitch technique
@@ -35,29 +34,13 @@ class TextStitchGenerator {
         let bounds = pathResult.bounds
         let density = textObject.effectiveDensity()
 
-        // Generate stitches based on technique
-        let technique = textObject.stitchTechnique
-
-        // Generate fill stitches first (if needed) so they appear under outline
-        if technique.needsFill {
-            let fillColor = textObject.fillColor ?? textObject.outlineColor
-            let fillStitches = fillGenerator.generateFillStitches(
-                pathResult: pathResult,
-                density: density,
-                color: fillColor
-            )
-            allStitchGroups.append(contentsOf: fillStitches)
-        }
-
-        // Generate outline stitches (if needed)
-        if technique.needsOutline {
-            let outlineStitches = outlineGenerator.generateOutlineStitches(
-                pathResult: pathResult,
-                density: density,
-                color: textObject.outlineColor
-            )
-            allStitchGroups.append(contentsOf: outlineStitches)
-        }
+        // Generate outline stitches
+        let outlineStitches = outlineGenerator.generateOutlineStitches(
+            pathResult: pathResult,
+            density: density,
+            color: textObject.outlineColor
+        )
+        allStitchGroups.append(contentsOf: outlineStitches)
 
         return (allStitchGroups, bounds)
     }

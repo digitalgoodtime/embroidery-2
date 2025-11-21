@@ -52,9 +52,7 @@ class TextFillStitchGenerator {
         // Collect all boundary edges from all subpaths
         var allEdges: [(CGPoint, CGPoint)] = []
 
-        print("DEBUG: Processing \(subpaths.count) subpaths")
-        for (subpathIndex, subpath) in subpaths.enumerated() {
-            print("  Subpath \(subpathIndex): \(subpath.count) points")
+        for subpath in subpaths {
             // Create edges between consecutive points
             for i in 0..<subpath.count - 1 {
                 allEdges.append((subpath[i], subpath[i + 1]))
@@ -65,7 +63,6 @@ class TextFillStitchGenerator {
             }
         }
 
-        print("DEBUG: Created \(allEdges.count) total edges")
         guard !allEdges.isEmpty else { return [] }
 
         // Line spacing based on density
@@ -77,8 +74,6 @@ class TextFillStitchGenerator {
         // Generate horizontal scanlines
         var y = bounds.minY
         var scanlineIndex = 0
-
-        print("DEBUG: Scanning Y from \(bounds.minY) to \(bounds.maxY), lineSpacing: \(lineSpacing)")
 
         while y <= bounds.maxY {
             // Find intersections with all edges at this Y
@@ -104,14 +99,6 @@ class TextFillStitchGenerator {
             // Sort intersections
             xIntersections.sort()
 
-            // Only print first few scanlines to avoid spam
-            if scanlineIndex < 3 {
-                print("  Scanline \(scanlineIndex) at Y=\(y): \(xIntersections.count) intersections")
-                if !xIntersections.isEmpty {
-                    print("    X values: \(xIntersections.prefix(10))")
-                }
-            }
-
             // Create fill segments from pairs
             if xIntersections.count >= 2 {
                 for i in stride(from: 0, to: xIntersections.count - 1, by: 2) {
@@ -132,8 +119,6 @@ class TextFillStitchGenerator {
             y += CGFloat(lineSpacing)
             scanlineIndex += 1
         }
-
-        print("DEBUG: Generated \(allStitchPoints.count) stitch points from \(scanlineIndex) scanlines")
 
         guard !allStitchPoints.isEmpty else { return [] }
 
